@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "insurance-napa-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/insuranceNapa/InsuranceNapaWebPart.js",
+          "manifest": "./src/webparts/insuranceNapa/InsuranceNapaWebPart.manifest.json"
+        }
+      ]
+    },
+    "napa-dashboard-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/napaDashboard/NapaDashboardWebPart.js",
+          "manifest": "./src/webparts/napaDashboard/NapaDashboardWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "InsuranceNapaWebPartStrings": "lib/webparts/insuranceNapa/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
+    "NapaDashboardWebPartStrings": "lib/webparts/napaDashboard/loc/{locale}.js"
+  }
+}

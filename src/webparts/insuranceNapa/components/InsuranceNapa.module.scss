@@ -1,0 +1,390 @@
+@import "~office-ui-fabric-react/dist/sass/References.scss";
+
+#workbenchPageContent {
+  max-width: 100%;
+}
+.pageContent {
+  max-width: 100% !important;
+}
+.insuranceNapa {
+  .container {
+    // max-width: 700px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+  .appContainer div {
+    vertical-align: top;
+  }
+  .appMenu {
+    display: inline-block;
+    width: 100%;
+  }
+  .appBody {
+    display: inline-block;
+    min-width: 100%;
+    // border: 1px solid;
+    padding: 3px;
+  }
+  .contentSection {
+    margin-bottom: 3rem;
+  }
+  .headInfo ul {
+    list-style-type: none;
+    columns: 3;
+    -moz-columns: 3;
+    -webkit-columns: 3;
+  }
+  .headInfo ul li {
+    display: block;
+    width: 25.5rem;
+  }
+  .applicationInfo h2 {
+    margin: 0;
+  }
+
+  .appBody table,
+  .superBig {
+    width: 99.6%;
+  }
+  label {
+    display: block;
+  }
+  .inputDesc {
+    // font-size: 0.7rem;
+    margin: -2px;
+    padding: 2px;
+    color: rgb(96, 94, 92);
+    font-size: 11px;
+  }
+  .bolder {
+    font-weight: bold;
+    font-size: 0.75rem;
+  }
+  /*Calender Styles*/
+  .uiDatepickerTrigger {
+    margin-left: 0.5rem;
+    position: relative;
+    top: 0.2rem;
+  }
+  #uiDatepickerDiv {
+    background-color: #fff;
+    padding: 0.5rem;
+
+    /*margin-top: -2rem;*/
+  }
+  textarea,
+  .blank {
+    width: 97%;
+  }
+  .buttonsGroup {
+    display: flex;
+    flex-direction: row-reverse;
+    padding: 1rem 0 2rem 0;
+  }
+  .buttonsGroupInput {
+    width: 13rem;
+    font-size: 12px;
+    color: #fff;
+    background-color: #dc0032;
+  }
+  .buttonsGroupInput:hover {
+    color: #dc0032;
+    background-color: #fff;
+  }
+  .regionGroup {
+    height: 7rem;
+    overflow-y: auto;
+  }
+  table tr {
+    vertical-align: top;
+  }
+  .appContainer h2 {
+    color: #aa052d;
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+  hr.lineBreak {
+    border: #aa052d 2px solid;
+  }
+  .headerCover {
+    background-color: #f2f2f2;
+    margin-top: 1rem;
+  }
+  label {
+    font-size: 10pt;
+    color: #3f3f3f;
+  }
+  .requiredLabel,
+  .isRed {
+    color: #ff0000;
+  }
+  #pTitle {
+    color: #7b7b7b;
+    display: inline-block;
+  }
+  .statusText {
+    color: #760046;
+    font-size: 13.5pt;
+    font-weight: 700;
+  }
+  .menuItem {
+    padding: 2px;
+    border: 0px hidden !important;
+    cursor: pointer;
+    color: white;
+    background-color: #dc0032;
+    border-bottom: 1px solid #fff !important;
+    text-align: center;
+  }
+  .alwaysThere {
+    background-color: #b9255d;
+  }
+  .selectedStatus {
+    color: #ffffff !important;
+    background-color: #777777 !important;
+  }
+  .invalidControl,
+  input.invalidControl,
+  select.invalidControl {
+    border: 1px solid #ff0000;
+  }
+  .liner {
+    border-top: 1px solid;
+  }
+  .appContainer {
+    margin-left: -1rem;
+  }
+  input[type="password"][disabled],
+  input[type="text"][disabled],
+  input[type="file"][disabled],
+  textarea[disabled],
+  select[disabled],
+  .spDeoplepickerTopLevelDisabled,
+  .msInputBoxDisabled {
+    background-color: #fff;
+    color: #888888;
+  }
+  #tblEnquiries {
+    border: 0;
+  }
+  .regionGroupMin {
+    height: 4rem;
+  }
+  .proposalForm,
+  #supportingDocumentation {
+    clear: both;
+  }
+  .footerTbl {
+    margin-top: 1rem;
+  }
+  .addAttachmentsGroup a {
+    float: right;
+  }
+  .footerTd {
+    padding-left: 1rem;
+  }
+  .headerCover h2 {
+    padding: 0.5rem 0 0 0.5rem;
+  }
+  .headerCover p.inputDesc {
+    padding-left: 0.5rem;
+  }
+  /*.multiUsers */
+  label {
+    padding-top: 0.5rem;
+  }
+  .stick {
+    background-color: rgb(150, 5, 40);
+  }
+  .moveLeft {
+    padding: 1rem 0 2rem 0.5rem;
+    line-height: 2rem;
+  }
+  .submenu {
+    background-color: rgb(245, 45, 40);
+  }
+  .submenuDone {
+    background-color: rgb(250, 85, 30);
+  }
+  .approvedStage {
+    background-color: rgb(255, 120, 15);
+  }
+  .subComments .reviewesOnly {
+    margin-top: -0.7rem;
+  }
+  .right {
+    text-align: center;
+  }
+  .contentText {
+    color: #000;
+  }
+  .emptySpan {
+    width: 13rem;
+  }
+  table.tblLayout td {
+    width: 50%;
+  }
+  .msListviewtable {
+    border-spacing: 0;
+  }
+  .msAlternating {
+    background-color: rgba(241, 239, 239, 1);
+  }
+  /*People picker*/
+  .spPeoplepickerErrorMsg {
+    display: none;
+  }
+
+  label.greyText {
+    color: #888;
+  }
+  h2.headDueDate {
+    display: inline-block;
+    min-width: 25%;
+    color: #7b7b7b;
+  }
+  .max18 {
+    max-width: 12rem;
+  }
+  .msDlgContent {
+    position: fixed !important;
+  }
+  .subHeaderRow {
+    background-color: #888;
+    text-align: center;
+    padding: 0.2rem;
+  }
+  .subHeaderRow h3 {
+    color: #fff;
+  }
+  .icons__print {
+    text-align: right;
+  }
+  ul.print__icons {
+    display: inline-block;
+    margin-right: 0;
+    width: 10rem;
+    list-style-type: none;
+    /*position: relative;
+  right: -6rem;*/
+    columns: 2;
+    -webkit-columns: 2;
+    text-align: right;
+  }
+  .icons {
+    top: 50%;
+    border-radius: 50%;
+    cursor: pointer;
+    text-align: center;
+    font-style: normal;
+    color: #fff;
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    background-color: #dc0032;
+    padding: 3px;
+  }
+  ul.print__icons li {
+    text-align: center;
+    width: auto;
+  }
+  ul.print__icons li span {
+    font-size: 0.8rem;
+    display: inline-block;
+  }
+  ul.print__icons a {
+    text-decoration: none;
+  }
+  .print_page .headInfo ul li {
+    width: 17.5rem;
+  }
+  .print_page .statusText {
+    font-size: 11.5pt;
+  }
+  .print_page .half {
+    width: 50%;
+  }
+  .print_page table div {
+    line-height: 1.2rem;
+    text-justify: inter-word;
+    text-align: justify;
+    padding: 4px;
+  }
+  .print_page .appBody {
+    border: 1px solid transparent;
+  }
+
+  input[type="button"].printBtn {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    width: 10rem;
+    background-color: #dc0032;
+    color: #fff;
+  }
+  .row {
+    @include ms-Grid-row;
+    @include ms-fontColor-white;
+    background-color: $ms-color-themeDark;
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg10;
+    @include ms-xl8;
+    @include ms-xlPush2;
+    @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-white;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family: "Segoe UI WestEuropean", "Segoe UI", -apple-system,
+      BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+}

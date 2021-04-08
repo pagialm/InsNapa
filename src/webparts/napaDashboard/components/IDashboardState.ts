@@ -1,0 +1,3 @@
+interface IDashboardState {
+  items: IListItem[];
+}
