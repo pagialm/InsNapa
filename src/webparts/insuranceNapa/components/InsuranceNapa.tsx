@@ -46,6 +46,7 @@ import { IProposal } from "./IProposal";
 import FilteredDropdown from "./FilteredDropdown";
 import { HttpRequestError } from "@pnp/odata";
 import * as HeadersDecor from "./Headers";
+import NPSDetermination from "./NPSDetermination/NPSDetermination";
 const stackTokens = { childrenGap: 50 };
 const stackStyles: Partial<IStackStyles> = { root: { width: 784 } };
 const columnProps: Partial<IStackProps> = {
@@ -63,6 +64,8 @@ const proposalObj = {
   bookingLegalEntitiesListname: "Booking Legal Entities",
   distributionChannelListname: "Distribution Channels",
   napaProposalsListname: "NAPA Proposals",
+  productFamilyListname: "Product Family",
+  teamAssessmentReasonListname: "NAPA Team Assessment Reason",
   userObjects: [],
   userObjectsCount: 0,
   //proposalObj: {},
@@ -154,6 +157,8 @@ export default class InsuranceNapa extends React.Component<
       distributionChannels: [],
       submitionStatus: "",
       errorMessage: [],
+      ProductFamilyOptions: [],
+      TeamAssesmentReasonOptions: [],
     };
   }
   public async componentDidMount(): Promise<void> {
@@ -214,8 +219,20 @@ export default class InsuranceNapa extends React.Component<
     //load Company --Entity
     this._loadCompany();
 
+    //NAPA Team Assessment Reason
+    const arr = new Array<IDropdownOption>();
+    this._loadDropdownFromSP(proposalObj.teamAssessmentReasonListname, arr, {
+      TeamAssesmentReasonOptions: arr,
+    });
+    //Product Family
+    const arr2 = new Array<IDropdownOption>();
+
+    this._loadDropdownFromSP(proposalObj.productFamilyListname, arr2, {
+      ProductFamilyOptions: arr2,
+    });
+
     // get Proposal
-    if (this.props.itemId)
+    if (this.props.itemId && this.props.itemId > 0)
       this._getListitem(
         proposalObj.napaProposalsListname,
         this.props.itemId
@@ -251,8 +268,10 @@ export default class InsuranceNapa extends React.Component<
         const newstate = {};
         userObjects.forEach((userObject) => {
           this._getUserById(_item[userObject.itemName]).then((user) => {
-            newstate[userObject.stateName] = user[0].Title;
-            this.setState(newstate);
+            if (user.length > 0) {
+              newstate[userObject.stateName] = user[0].Title;
+              this.setState(newstate);
+            }
           });
         });
         dateObjects.forEach((dateObject) => {
@@ -263,8 +282,6 @@ export default class InsuranceNapa extends React.Component<
             this.setState(newstate);
           }
         });
-        console.log(this.state);
-        console.log("item", item);
       });
   }
   private _getUserById(userId: number | string): Promise<any> {
@@ -381,11 +398,9 @@ export default class InsuranceNapa extends React.Component<
     ev: React.MouseEvent<HTMLElement, MouseEvent>,
     checked: boolean
   ): void {
-    console.log(ev, checked);
     const el = ev.currentTarget;
     const stateEl = {};
     stateEl[el.id.split("_")[1]] = checked;
-    console.log(stateEl);
     this.setState(stateEl);
   }
   @autobind
@@ -429,8 +444,8 @@ export default class InsuranceNapa extends React.Component<
     for (let item in items) {
       getSelectedUsers.push(items[item].id);
     }
-    console.log(getSelectedUsers);
-    console.log(this);
+    // console.log(getSelectedUsers);
+    // console.log(this);
     //this.setState({ users: getSelectedUsers });
     return getSelectedUsers;
   }
@@ -493,8 +508,8 @@ export default class InsuranceNapa extends React.Component<
   }
   @autobind
   private _saveApplicationProposal(e) {
-    // debugger;
-    console.log(this);
+    debugger;
+    // console.log(this);
     const buttonClicked: string = e.target.innerText;
     let statusText = "NPS Determination";
     if (buttonClicked === "Save as Draft") statusText = "Enquiry";
@@ -513,7 +528,8 @@ export default class InsuranceNapa extends React.Component<
       proposal["WorkStreamCoordinatorId"] = [
         this.state.WorkStreamCoordinatorId,
       ];
-    if (this.state.Region.length > 0) proposal["Region"] = [this.state.Region];
+    if (this.state.Region && this.state.Region.length > 0)
+      proposal["Region"] = [this.state.Region];
     proposal["Country0"] = this.state.Country0;
     proposal["Company"] = this.state.Company;
     proposal["BusinessArea"] = this.state.BusinessArea;
@@ -529,59 +545,72 @@ export default class InsuranceNapa extends React.Component<
       "ConductRiskIssuesComments"
     ] = this.state.ConductRiskIssuesComments;
     proposal["PrincipalRisks"] = this.state.PrincipalRisks;
-    if (this.state.IFCountry.length > 0)
-      proposal["IFCountry"] = [this.state.IFCountry];
-    if (this.state.SalesTeamLocation.length > 0)
-      proposal["SalesTeamLocation"] = [this.state.SalesTeamLocation];
-    if (this.state.ClientLocation.length > 0)
-      proposal["ClientLocation"] = [this.state.ClientLocation];
-    if (this.state.ClientSector.length > 0)
-      proposal["ClientSector"] = [this.state.ClientSector];
-    if (this.state.ProductOfferingCountry.length > 0)
-      proposal["ProductOfferingCountry"] = [this.state.ProductOfferingCountry];
-    if (this.state.BookingCurrencies.length > 0)
-      proposal["BookingCurrencies"] = [this.state.BookingCurrencies];
-    if (this.state.BookingLocation.length > 0)
-      proposal["BookingLocation"] = [this.state.BookingLocation];
-    if (this.state.NatureOfTrade.length > 0)
+    if (this.state.IFCountry && this.state.IFCountry.length > 0)
+      proposal["IFCountry"] = this.state.IFCountry;
+    if (this.state.SalesTeamLocation && this.state.SalesTeamLocation.length > 0)
+      proposal["SalesTeamLocation"] = this.state.SalesTeamLocation;
+    if (this.state.ClientLocation && this.state.ClientLocation.length > 0)
+      proposal["ClientLocation"] = this.state.ClientLocation;
+    if (this.state.ClientSector)
+      proposal["ClientSector"] = this.state.ClientSector;
+    if (this.state.ProductOfferingCountry)
+      proposal["ProductOfferingCountry"] = this.state.ProductOfferingCountry;
+    if (this.state.BookingCurrencies)
+      proposal["BookingCurrencies"] = this.state.BookingCurrencies;
+    if (this.state.BookingLocation)
+      proposal["BookingLocation"] = this.state.BookingLocation;
+    if (this.state.NatureOfTrade)
       proposal["NatureOfTrade"] = this.state.NatureOfTrade;
-    if (this.state.TraderLocation.length > 0)
-      proposal["TraderLocation"] = [this.state.TraderLocation];
-    if (this.state.BookingEntity.length > 0)
-      proposal["BookingEntity"] = [this.state.BookingEntity];
+    if (this.state.TraderLocation)
+      proposal["TraderLocation"] = this.state.TraderLocation;
+    if (this.state.BookingEntity)
+      proposal["BookingEntity"] = this.state.BookingEntity;
     proposal["JointVenture"] = this.state.JointVenture;
     proposal["Status"] = statusText;
 
     const url: string =
-      this.props.context.pageContext.web.absoluteUrl +
-      "/_api/web/lists/getbytitle('" +
-      proposalObj.napaProposalsListname +
-      "')/items";
+      this.state.ID == 0
+        ? this.props.context.pageContext.web.absoluteUrl +
+          "/_api/web/lists/getbytitle('" +
+          proposalObj.napaProposalsListname +
+          "')/items"
+        : this.props.context.pageContext.web.absoluteUrl +
+          "/_api/web/lists/getbytitle('" +
+          proposalObj.napaProposalsListname +
+          "')/items(" +
+          this.state.ID +
+          ")";
     const spHttpClientOptions: ISPHttpClientOptions = {
       body: JSON.stringify(proposal),
     };
 
-    if (this.state.ID) {
-      console.log("Item to be updated");
-    } else {
-      if (_isFormValid) {
-        this.props.context.spHttpClient
-          .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
-          .then((response: SPHttpClientResponse) => {
-            if (response.status === 201) {
-              console.log("Ayeye!!!", response);
-              this.setState({ submitionStatus: "Ok" });
-              //location.href = this.props.context.pageContext.web.absoluteUrl;
-            } else {
-              this.setState({
-                errorMessage: [
-                  `Error: [HTTP]:${response.status} [CorrelationId]:${response.statusText}`,
-                ],
-              });
-            }
-          });
-      }
+    if (this.state.ID > 0) {
+      const headers: any = {
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      };
+      spHttpClientOptions["headers"] = headers;
     }
+    // {
+    if (_isFormValid) {
+      this.props.context.spHttpClient
+        .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
+        .then((response: SPHttpClientResponse) => {
+          if (response.status >= 201 && response.status < 300) {
+            this.setState({ submitionStatus: "Ok" });
+            setTimeout(() => {
+              location.href = this.props.context.pageContext.web.absoluteUrl;
+            }, 500);
+          } else {
+            this.setState({
+              errorMessage: [
+                `Error: [HTTP]:${response.status} [CorrelationId]:${response.statusText}`,
+              ],
+            });
+          }
+        });
+    }
+    // }
   }
   @autobind
   private _cancelProposal() {
@@ -652,202 +681,203 @@ export default class InsuranceNapa extends React.Component<
       <div className={styles.insuranceNapa}>
         {/* <div className={styles.menuItem}>Enquiery</div> */}
         <MenuIcon iconName="Headset" stageName="Enquiry" activated={false} />
+        {this.state.Status === "Enquiry" && (
+          <Stack>
+            {this.state.ID > 0 && (
+              <HeadersDecor.default
+                proposalStatus={this.state.Status}
+                proposalId={this.state.ID}
+                selectedSection="Enquiry"
+                title={this.state.Title}
+              />
+            )}
 
-        <Stack>
-          {this.state.ID > 0 && (
-            <HeadersDecor.default
-              proposalStatus={this.state.Status}
-              proposalId={this.state.ID}
-              selectedSection="Enquiry"
-              title={this.state.Title}
+            <HeaderInfo
+              title="Application Information"
+              description="Provide the following administrative information"
             />
-          )}
-
-          <HeaderInfo
-            title="Application Information"
-            description="Provide the following administrative information"
-          />
-          <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-            <Stack {...columnProps}>
-              <TextField
-                label="Proposal Name:"
-                required
-                value={this.state.Title}
-                id="txt_Title"
-                onChange={this._onChangeText}
-                description="The proposal name should contain the key distinguishing attributes associated with the proposal."
-              />
-              <PeoplePicker
-                context={this.props.context}
-                titleText="Application completed by"
-                personSelectionLimit={3}
-                showtooltip={true}
-                disabled={false}
-                defaultSelectedUsers={[this.state.applicationCompletedBy]}
-                onChange={(items: any[]) => {
-                  const _users = this._getPeoplePickerItems(items);
-                  debugger;
-                  if (_users.length > 0)
-                    this.setState({
-                      AppCreatedById: _users[0],
-                    });
-                }}
-                // selectedItems={this._getPeoplePickerItems }
-                showHiddenInUI={false}
-                ensureUser={true}
-                principalTypes={[PrincipalType.User]}
-                resolveDelay={1000}
-              />
-              <Label className={styles.inputDesc}>
-                The Product Originator is a business representative or business
-                manager, or his/her delegate. The Originator will also be the
-                person raising the Proposal Template.
-              </Label>
-              <PeoplePicker
-                context={this.props.context}
-                titleText="P&L Owner/ General Manager"
-                personSelectionLimit={3}
-                showtooltip={true}
-                defaultSelectedUsers={[this.state.tradingBookOwner]}
-                disabled={false}
-                onChange={(items: any[]) => {
-                  const _users = this._getPeoplePickerItems(items);
-                  if (_users.length > 0)
-                    this.setState({
-                      TradingBookOwnerId: _users[0],
-                    });
-                }}
-                showHiddenInUI={false}
-                ensureUser={true}
-                principalTypes={[PrincipalType.User]}
-                resolveDelay={1000}
-              />
+            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
+              <Stack {...columnProps}>
+                <TextField
+                  label="Proposal Name:"
+                  required
+                  value={this.state.Title}
+                  id="txt_Title"
+                  onChange={this._onChangeText}
+                  description="The proposal name should contain the key distinguishing attributes associated with the proposal."
+                />
+                <PeoplePicker
+                  context={this.props.context}
+                  titleText="Application completed by"
+                  personSelectionLimit={3}
+                  showtooltip={true}
+                  disabled={false}
+                  defaultSelectedUsers={[this.state.applicationCompletedBy]}
+                  onChange={(items: any[]) => {
+                    const _users = this._getPeoplePickerItems(items);
+                    debugger;
+                    if (_users.length > 0)
+                      this.setState({
+                        AppCreatedById: _users[0],
+                      });
+                  }}
+                  // selectedItems={this._getPeoplePickerItems }
+                  showHiddenInUI={false}
+                  ensureUser={true}
+                  principalTypes={[PrincipalType.User]}
+                  resolveDelay={1000}
+                />
+                <Label className={styles.inputDesc}>
+                  The Product Originator is a business representative or
+                  business manager, or his/her delegate. The Originator will
+                  also be the person raising the Proposal Template.
+                </Label>
+                <PeoplePicker
+                  context={this.props.context}
+                  titleText="P&L Owner/ General Manager"
+                  personSelectionLimit={3}
+                  showtooltip={true}
+                  defaultSelectedUsers={[this.state.tradingBookOwner]}
+                  disabled={false}
+                  onChange={(items: any[]) => {
+                    const _users = this._getPeoplePickerItems(items);
+                    if (_users.length > 0)
+                      this.setState({
+                        TradingBookOwnerId: _users[0],
+                      });
+                  }}
+                  showHiddenInUI={false}
+                  ensureUser={true}
+                  principalTypes={[PrincipalType.User]}
+                  resolveDelay={1000}
+                />
+              </Stack>
+              <Stack {...columnProps}>
+                <DatePicker
+                  label="Target Launch Date:"
+                  isRequired
+                  value={this.state.targetCompletionDate}
+                  onSelectDate={this._onSelectDate}
+                  formatDate={this._onFormatDate}
+                />
+                <PeoplePicker
+                  context={this.props.context}
+                  titleText="Sponsor"
+                  personSelectionLimit={3}
+                  showtooltip={true}
+                  defaultSelectedUsers={[this.state.sponser]}
+                  disabled={false}
+                  onChange={(items: any[]) => {
+                    const _users = this._getPeoplePickerItems(items);
+                    if (_users.length > 0)
+                      this.setState({
+                        SponsorId: _users[0],
+                      });
+                  }}
+                  showHiddenInUI={false}
+                  ensureUser={true}
+                  principalTypes={[PrincipalType.User]}
+                  // resolveDelay={1000}
+                />
+                <Label className={styles.inputDesc}>
+                  The Sponsor generally is from the Business and must be
+                  Managing Director level (or a Desk Head in the case of Absa
+                  Capital).
+                </Label>
+                <PeoplePicker
+                  context={this.props.context}
+                  titleText="Product Owner"
+                  personSelectionLimit={3}
+                  showtooltip={true}
+                  defaultSelectedUsers={[this.state.workstreamCoordinator]}
+                  disabled={false}
+                  onChange={(items: any[]) => {
+                    const _users = this._getPeoplePickerItems(items);
+                    if (_users.length > 0)
+                      this.setState({
+                        WorkStreamCoordinatorId: _users[0],
+                      });
+                  }}
+                  showHiddenInUI={false}
+                  ensureUser={true}
+                  principalTypes={[PrincipalType.User]}
+                  // resolveDelay={1000}
+                />
+              </Stack>
             </Stack>
-            <Stack {...columnProps}>
-              <DatePicker
-                label="Target Launch Date:"
-                isRequired
-                value={this.state.targetCompletionDate}
-                onSelectDate={this._onSelectDate}
-                formatDate={this._onFormatDate}
-              />
-              <PeoplePicker
-                context={this.props.context}
-                titleText="Sponsor"
-                personSelectionLimit={3}
-                showtooltip={true}
-                defaultSelectedUsers={[this.state.sponser]}
-                disabled={false}
-                onChange={(items: any[]) => {
-                  const _users = this._getPeoplePickerItems(items);
-                  if (_users.length > 0)
-                    this.setState({
-                      SponsorId: _users[0],
-                    });
-                }}
-                showHiddenInUI={false}
-                ensureUser={true}
-                principalTypes={[PrincipalType.User]}
-                // resolveDelay={1000}
-              />
-              <Label className={styles.inputDesc}>
-                The Sponsor generally is from the Business and must be Managing
-                Director level (or a Desk Head in the case of Absa Capital).
-              </Label>
-              <PeoplePicker
-                context={this.props.context}
-                titleText="Product Owner"
-                personSelectionLimit={3}
-                showtooltip={true}
-                defaultSelectedUsers={[this.state.workstreamCoordinator]}
-                disabled={false}
-                onChange={(items: any[]) => {
-                  const _users = this._getPeoplePickerItems(items);
-                  if (_users.length > 0)
-                    this.setState({
-                      WorkStreamCoordinatorId: _users[0],
-                    });
-                }}
-                showHiddenInUI={false}
-                ensureUser={true}
-                principalTypes={[PrincipalType.User]}
-                // resolveDelay={1000}
-              />
+            <HeaderInfo
+              title="Product Description"
+              description="This section captures the description of NAPA. It is to be concise in order for reviewers, regardless of their expertise, to understand the NAPA. More detail can be added when the full application is submitted. Please do not embed any documents in this section."
+            />
+            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
+              <Stack tokens={stackTokens} {...columnProps}>
+                <Dropdown
+                  label="Region:"
+                  options={proposalRegions}
+                  selectedKey={this.state.Region}
+                  onChange={this._onChange}
+                  id="ddl_Region"
+                  required
+                />
+              </Stack>
+              <Stack {...columnProps}>
+                <Dropdown
+                  label="Country:"
+                  options={this.state.shortCountries}
+                  selectedKey={this.state.Country0}
+                  defaultSelectedKey={this.state.Country0}
+                  onChange={this._onChange}
+                  id="ddl_Country0"
+                  required
+                />
+              </Stack>
             </Stack>
-          </Stack>
-          <HeaderInfo
-            title="Product Description"
-            description="This section captures the description of NAPA. It is to be concise in order for reviewers, regardless of their expertise, to understand the NAPA. More detail can be added when the full application is submitted. Please do not embed any documents in this section."
-          />
-          <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-            <Stack tokens={stackTokens} {...columnProps}>
-              <Dropdown
-                label="Region:"
-                options={proposalRegions}
-                selectedKey={this.state.Region}
-                onChange={this._onChange}
-                id="ddl_Region"
-                required
-              />
-            </Stack>
-            <Stack {...columnProps}>
-              <Dropdown
-                label="Country:"
-                options={this.state.shortCountries}
-                selectedKey={this.state.Country0}
-                defaultSelectedKey={this.state.Country0}
-                onChange={this._onChange}
-                id="ddl_Country0"
-                required
-              />
-            </Stack>
-          </Stack>
-          <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-            <Stack {...columnProps}>
-              <Dropdown
-                label="Entity:"
-                // onChange={() => {
-                //   this._loadFilteredDropdown(
-                //     "ddlProductArea",
-                //     "Product_x0020_Area"
-                //   );
-                // }}
-                onChange={this._onFilteredDropdownChange}
-                options={this.state.companies}
-                id="ddl_Company"
-                selectedKey={this.state.Company}
-                required
-                // selectedKey={this.state.proposalObject.Company}
-              />
-              <Dropdown
-                label="Product Family:"
-                options={this.state.businessAreas}
-                // onChange={() => {
-                //   this._loadFilteredDropdown("ddlSubProducts", "Product");
-                // }}
-                required
-                onChange={this._onChange}
-                id="ddl_BusinessArea"
-                selectedKey={this.state.BusinessArea}
-                // selectedKey={this.state.proposalObject.BusinessArea}
-              />
-              {/*  */}
-            </Stack>
-            <Stack {...columnProps}>
-              <Dropdown
-                label="Distribution Channel:"
-                options={this.state.distributionChannels}
-                // onChange={() => {
-                //   this._loadFilteredDropdown("ddlBusinessArea", "Business");
-                // }}
-                title="Distribution Channels"
-                onChange={this._onChange}
-                id="ddl_ProductArea0"
-                selectedKey={this.state.ProductArea0}
-                required
-                // selectedKey={this.state.proposalObject.ProductArea0}
-              />
-              {/* <FilteredDropdown
+            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
+              <Stack {...columnProps}>
+                <Dropdown
+                  label="Entity:"
+                  // onChange={() => {
+                  //   this._loadFilteredDropdown(
+                  //     "ddlProductArea",
+                  //     "Product_x0020_Area"
+                  //   );
+                  // }}
+                  onChange={this._onFilteredDropdownChange}
+                  options={this.state.companies}
+                  id="ddl_Company"
+                  selectedKey={this.state.Company}
+                  required
+                  // selectedKey={this.state.proposalObject.Company}
+                />
+                <Dropdown
+                  label="Product Family:"
+                  options={this.state.businessAreas}
+                  // onChange={() => {
+                  //   this._loadFilteredDropdown("ddlSubProducts", "Product");
+                  // }}
+                  required
+                  onChange={this._onChange}
+                  id="ddl_BusinessArea"
+                  selectedKey={this.state.BusinessArea}
+                  // selectedKey={this.state.proposalObject.BusinessArea}
+                />
+                {/*  */}
+              </Stack>
+              <Stack {...columnProps}>
+                <Dropdown
+                  label="Distribution Channel:"
+                  options={this.state.distributionChannels}
+                  // onChange={() => {
+                  //   this._loadFilteredDropdown("ddlBusinessArea", "Business");
+                  // }}
+                  title="Distribution Channels"
+                  onChange={this._onChange}
+                  id="ddl_ProductArea0"
+                  selectedKey={this.state.ProductArea0}
+                  required
+                  // selectedKey={this.state.proposalObject.ProductArea0}
+                />
+                {/* <FilteredDropdown
                 label="Product Area:"
                 context={this.props.context}
                 listname="Products"
@@ -856,263 +886,307 @@ export default class InsuranceNapa extends React.Component<
                   value: this.state.proposalObject.ProductArea0,
                 }}
               /> */}
-              <Dropdown
-                label="Product Family Risk Classification:"
-                options={productFamRiskClass}
-                id="ddl_SubProduct"
-                // defaultSelectedKey="0"
-                selectedKey={this.state.SubProduct}
-                onChange={this._onChange}
-              />
+                <Dropdown
+                  label="Product Family Risk Classification:"
+                  options={productFamRiskClass}
+                  id="ddl_SubProduct"
+                  // defaultSelectedKey="0"
+                  selectedKey={this.state.SubProduct}
+                  onChange={this._onChange}
+                />
+              </Stack>
             </Stack>
-          </Stack>
-          <TextField
-            label="Executive Summary:"
-            multiline
-            rows={5}
-            value={this.state.ExecutiveSummary}
-            id="txt_ExecutiveSummary"
-            required
-          />
-          <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-            <Stack {...columnProps}>
-              <TextField
-                label="What is new for this Proposal?"
-                multiline
-                rows={3}
-                value={this.state.NewForProposal}
-                onChange={this._onChangeText}
-                id="txt_NewForProposal"
-              />
-              <TextField
-                label="Link to Existing Proposal:"
-                multiline
-                rows={3}
-                value={this.state.LinkToExistingProposal}
-                onChange={this._onChangeText}
-                id="txt_LinkToExistingProposal"
-              />
+            <TextField
+              label="Executive Summary:"
+              multiline
+              rows={5}
+              value={this.state.ExecutiveSummary}
+              id="txt_ExecutiveSummary"
+              required
+              onChange={this._onChangeText}
+            />
+            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
+              <Stack {...columnProps}>
+                <TextField
+                  label="What is new for this Proposal?"
+                  multiline
+                  rows={3}
+                  value={this.state.NewForProposal}
+                  onChange={this._onChangeText}
+                  id="txt_NewForProposal"
+                />
+                <TextField
+                  label="Link to Existing Proposal:"
+                  multiline
+                  rows={3}
+                  value={this.state.LinkToExistingProposal}
+                  onChange={this._onChangeText}
+                  id="txt_LinkToExistingProposal"
+                />
+              </Stack>
+              <Stack {...columnProps}>
+                <TextField
+                  label="Is there a specific transaction in the pipeline?"
+                  multiline
+                  rows={3}
+                  value={this.state.TransactionInPipeline}
+                  onChange={this._onChangeText}
+                  id="txt_TransactionInPipeline"
+                  required
+                />
+              </Stack>
             </Stack>
-            <Stack {...columnProps}>
-              <TextField
-                label="Is there a specific transaction in the pipeline?"
-                multiline
-                rows={3}
-                value={this.state.TransactionInPipeline}
-                onChange={this._onChangeText}
-                id="txt_TransactionInPipeline"
-                required
-              />
-            </Stack>
-          </Stack>
-          <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-            <Stack {...columnProps}>
-              {/* <TextField
+            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
+              <Stack {...columnProps}>
+                {/* <TextField
                 label="Is the structure of the new product/transaction in any way influenced by
                           the anticipated tax treatment of any party to the transaction?"
                 multiline
                 rows={3}
                 value={this.state.proposalObject.TaxTreatment}
               /> */}
-              <TextField
-                label="Are there any Reputational and/or Conduct Risk issues which arise from entering into
+                <TextField
+                  label="Are there any Reputational and/or Conduct Risk issues which arise from entering into
                           this new product or amended product/services? Please provide a rationale for your answer"
-                multiline
-                value={this.state.ConductRiskIssuesComments}
-                rows={3}
-                onChange={this._onChangeText}
-                id="txt_ConductRiskIssuesComments"
-              />
-            </Stack>
-            <Stack {...columnProps}>
-              {/* <TextField
+                  multiline
+                  value={this.state.ConductRiskIssuesComments}
+                  rows={3}
+                  onChange={this._onChangeText}
+                  id="txt_ConductRiskIssuesComments"
+                />
+              </Stack>
+              <Stack {...columnProps}>
+                {/* <TextField
                 label="Does this NAPA constitute issuing a line of credit/an extension of credit of any type to the client?"
                 multiline
                 rows={3}
                 value={this.state.proposalObject.LineOfCredit}
               /> */}
-              <TextField
-                label="What do you consider to be the Principal Risks associated with this proposal?"
-                multiline
-                rows={3}
-                value={this.state.proposalObject.PrincipalRisks}
-                onChange={this._onChangeText}
-                id="txt_PrincipalRisks"
+                <TextField
+                  label="What do you consider to be the Principal Risks associated with this proposal?"
+                  multiline
+                  rows={3}
+                  value={this.state.PrincipalRisks}
+                  onChange={this._onChangeText}
+                  id="txt_PrincipalRisks"
+                />
+              </Stack>
+            </Stack>
+            <HeaderInfo
+              title="Business Hierarchy"
+              description="Provide the following country information"
+            />
+            <Stack horizontal styles={stackStyles} tokens={stackTokens}>
+              <Stack {...columnProps}>
+                <Dropdown
+                  placeholder="Select options"
+                  label="Infrastructure Support Country:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ IFCountry: [o.text] });
+                  }}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  selectedKey={this.state.IFCountry}
+                  id="ddl_IFCountry"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Target Client Location:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ ClientLocation: [o.text] });
+                  }}
+                  selectedKey={this.state.ClientLocation}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  id="ddl_ClientLocation"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Country of Product Offering:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ ProductOfferingCountry: [o.text] });
+                  }}
+                  selectedKey={this.state.ProductOfferingCountry}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  id="ddl_ProductOfferingCountry"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Booking Location:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ BookingLocation: [o.text] });
+                  }}
+                  selectedKey={this.state.BookingLocation}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  id="ddl_BookingLocation"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Trader Location:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ TraderLocation: [o.text] });
+                  }}
+                  selectedKey={this.state.TraderLocation}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  id="ddl_TraderLocation"
+                />
+              </Stack>
+              <Stack {...columnProps}>
+                <Dropdown
+                  placeholder="Select options"
+                  label="Sales/Coverage Team Location:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ SalesTeamLocation: [o.text] });
+                  }}
+                  selectedKey={this.state.SalesTeamLocation}
+                  options={this.state.shortCountries}
+                  styles={dropdownStyles}
+                  id="ddl_SalesTeamLocation"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Target Client Sector:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ ClientSector: [o.text] });
+                  }}
+                  selectedKey={this.state.ClientSector}
+                  options={this.state.clientSectors}
+                  styles={dropdownStyles}
+                  id="ddl_ClientSector"
+                  required
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Booking/Applicable Currencies:"
+                  // selectedKeys={selectedKeys}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ BookingCurrencies: [o.text] });
+                  }}
+                  selectedKey={this.state.BookingCurrencies}
+                  id="ddl_BookingCurrencies"
+                  options={this.state.bookingCurrencies}
+                  styles={dropdownStyles}
+                  required
+                />
+                <Dropdown
+                  placeholder="Select option"
+                  label="Nature of Trade Activity:"
+                  // selectedKeys={selectedKeys}
+                  selectedKey={this.state.NatureOfTrade}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  id="ddl_NatureOfTrade"
+                  onChange={this._onChange}
+                  options={this.state.tradeActivities}
+                  styles={dropdownStyles}
+                />
+                <Dropdown
+                  placeholder="Select options"
+                  label="Booking Legal Entity:"
+                  selectedKey={this.state.BookingEntity}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onChange={(e, o, i) => {
+                    this.setState({ BookingEntity: [o.text] });
+                  }}
+                  id="ddl_BookingEntity"
+                  options={this.state.legalEntities}
+                  styles={dropdownStyles}
+                  required
+                />
+              </Stack>
+            </Stack>
+            <Separator />
+            <Toggle
+              label="Is this a joint venture divisions or business area?"
+              // defaultChecked
+              onText="Yes"
+              offText="No"
+              onChange={this._onChangeToggle}
+              role="checkbox"
+              checked={this.state.JointVenture}
+              id="tgl_JointVenture"
+            />
+            <Separator />
+            {this.state.submitionStatus === "Ok" && <SuccessExample />}
+            {this.state.errorMessage.length > 0 &&
+              this.state.errorMessage.map((msg) => (
+                <MessageBar
+                  messageBarType={MessageBarType.error}
+                  isMultiline={false}
+                  dismissButtonAriaLabel="Close"
+                >
+                  {msg}
+                </MessageBar>
+              ))}
+            <Stack horizontal tokens={stackTokens}>
+              <DefaultButton
+                text="Cancel"
+                onClick={this._cancelProposal}
+                allowDisabledFocus
+                className={styles.buttonsGroupInput}
+              />
+              <PrimaryButton
+                text="Submit for NPS Determination"
+                onClick={this._saveApplicationProposal}
+                allowDisabledFocus
+                className={styles.buttonsGroupInput}
+              />
+              <PrimaryButton
+                text="Save as Draft"
+                onClick={this._saveApplicationProposal}
+                allowDisabledFocus
+                className={styles.buttonsGroupInput}
               />
             </Stack>
           </Stack>
-          <HeaderInfo
-            title="Business Hierarchy"
-            description="Provide the following country information"
+        )}
+        {this.state.Status !== "Enquiry" && (
+          <NPSDetermination
+            teamAssessment={this.state.NapaTeamAssessment}
+            productFamily={this.state.ProductFamily}
+            teamAssesmentReason={this.state.NapaTeamAssReason}
+            teamCoordinators={null}
+            productFamilyRiskClassification={
+              this.state.ProductFamilyRiskClassification
+            }
+            resetEnquiryComment={this.state.ResetToEnqComment}
+            title={this.state.Title}
+            proposalStatus={this.state.Status}
+            proposalId={this.state.ID}
+            onDdlChange={this._onChange}
+            context={this.props.context}
+            getPeoplePickerItems={this._getPeoplePickerItems}
+            nAPATeamCoordinators={this.state.NAPATeamCoordinatorsId}
+            onChangeText={this._onChangeText}
+            teamAssesmentReasonOptions={this.state.TeamAssesmentReasonOptions}
+            productFamilyOptions={this.state.ProductFamilyOptions}
+            approvalCapacity={this.state.ApprovalCapacity}
+            validateForm={this._validateForm}
+            napaProposalsListname={proposalObj.napaProposalsListname}
           />
-          <Stack horizontal styles={stackStyles} tokens={stackTokens}>
-            <Stack {...columnProps}>
-              <Dropdown
-                placeholder="Select options"
-                label="Infrastructure Support Country:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                selectedKey={this.state.IFCountry}
-                id="ddl_IFCountry"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Target Client Location:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.ClientLocation}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                id="ddl_ClientLocation"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Country of Product Offering:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.ProductOfferingCountry}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                id="ddl_ProductOfferingCountry"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Booking Location:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.BookingLocation}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                id="ddl_BookingLocation"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Trader Location:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.TraderLocation}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                id="ddl_TraderLocation"
-              />
-            </Stack>
-            <Stack {...columnProps}>
-              <Dropdown
-                placeholder="Select options"
-                label="Sales/Coverage Team Location:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.SalesTeamLocation}
-                options={this.state.shortCountries}
-                styles={dropdownStyles}
-                id="ddl_SalesTeamLocation"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Target Client Sector:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKey={this.state.ClientSector}
-                options={this.state.clientSectors}
-                styles={dropdownStyles}
-                id="ddl_ClientSector"
-                required
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Booking/Applicable Currencies:"
-                // selectedKeys={selectedKeys}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                selectedKeys={this.state.BookingCurrencies}
-                id="ddl_BookingCurrencies"
-                multiSelect
-                options={this.state.bookingCurrencies}
-                styles={dropdownStyles}
-                required
-              />
-              <Dropdown
-                placeholder="Select option"
-                label="Nature of Trade Activity:"
-                // selectedKeys={selectedKeys}
-                selectedKey={this.state.NatureOfTrade}
-                // eslint-disable-next-line react/jsx-no-bind
-                id="ddl_NatureOfTrade"
-                onChange={this._onChange}
-                options={this.state.tradeActivities}
-                styles={dropdownStyles}
-              />
-              <Dropdown
-                placeholder="Select options"
-                label="Booking Legal Entity:"
-                selectedKey={this.state.BookingEntity}
-                // eslint-disable-next-line react/jsx-no-bind
-                onChange={this._onChange}
-                id="ddl_BookingEntity"
-                options={this.state.legalEntities}
-                styles={dropdownStyles}
-                required
-              />
-            </Stack>
-          </Stack>
-          <Separator />
-          <Toggle
-            label="Is this a joint venture divisions or business area?"
-            // defaultChecked
-            onText="Yes"
-            offText="No"
-            onChange={this._onChangeToggle}
-            role="checkbox"
-            checked={this.state.JointVenture}
-            id="tgl_JointVenture"
-          />
-          <Separator />
-          {this.state.submitionStatus === "Ok" && <SuccessExample />}
-          {this.state.errorMessage.length > 0 &&
-            this.state.errorMessage.map((msg) => (
-              <MessageBar
-                messageBarType={MessageBarType.error}
-                isMultiline={false}
-                dismissButtonAriaLabel="Close"
-              >
-                {msg}
-              </MessageBar>
-            ))}
-          <Stack horizontal tokens={stackTokens}>
-            <DefaultButton
-              text="Cancel"
-              onClick={this._cancelProposal}
-              allowDisabledFocus
-              className={styles.buttonsGroupInput}
-            />
-            <PrimaryButton
-              text="Submit for NPS Determination"
-              onClick={this._saveApplicationProposal}
-              allowDisabledFocus
-              className={styles.buttonsGroupInput}
-            />
-            <PrimaryButton
-              text="Save as Draft"
-              onClick={this._saveApplicationProposal}
-              allowDisabledFocus
-              className={styles.buttonsGroupInput}
-            />
-          </Stack>
-        </Stack>
+        )}
       </div>
     );
   }

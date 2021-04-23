@@ -185,7 +185,7 @@ export default class NapaDashboard extends React.Component<
       })
       .then(() => {
         this._getLitsItems(_NapaItemsUrl).then((items: IListItem[]) => {
-          console.log(items);
+          // console.log(items);
           napaStages.forEach((napaStage, idx: number) => {
             const _stageItems: IListItem[] = items.filter((item) => {
               this.setAccess(item);
@@ -360,7 +360,7 @@ export default class NapaDashboard extends React.Component<
           items={this.state.items}
           columns={this._columns}
           groups={this._groups}
-          selectionMode={SelectionMode.single}
+          selectionMode={SelectionMode.none}
           onRenderItemColumn={this._renderItemColumn}
         />
       </div>

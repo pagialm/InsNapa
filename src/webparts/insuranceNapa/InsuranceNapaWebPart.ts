@@ -17,11 +17,16 @@ export interface IInsuranceNapaWebPartProps {
 
 export default class InsuranceNapaWebPart extends BaseClientSideWebPart<IInsuranceNapaWebPartProps> {
   public render(): void {
+    const urlParms = new URLSearchParams(new URL(window.location.href).search);
+    const itemID = urlParms.has("ProposalId")
+      ? parseInt(urlParms.get("ProposalId"))
+      : 0;
     const element: React.ReactElement<IInsuranceNapaProps> = React.createElement(
       InsuranceNapa,
       {
         description: this.properties.description,
         context: this.context,
+        itemId: itemID,
       }
     );
 

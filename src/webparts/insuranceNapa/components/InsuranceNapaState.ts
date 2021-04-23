@@ -56,4 +56,13 @@ export interface InsuranceNapaState {
   distributionChannels: IDropdownOption[];
   submitionStatus: string;
   errorMessage: string[];
+  NAPATeamCoordinatorsId?: any; // NAPA Team Coordinators
+  NapaTeamAssessment?: string; // NAPA Team Assessment
+  NapaTeamAssReason?: string; // NAPA Team Assessment Reason
+  ProductFamily?: string; // Product Family
+  ProductFamilyRiskClassification?: string; // Product Family Risk Classification
+  ApprovalCapacity?: string; // Approval Capacity
+  ResetToEnqComment?: string; // Reset Enquiry Comment
+  TeamAssesmentReasonOptions: IDropdownOption[];
+  ProductFamilyOptions: IDropdownOption[];
 }
