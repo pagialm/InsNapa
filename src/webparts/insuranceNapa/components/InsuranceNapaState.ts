@@ -1,4 +1,5 @@
 import { IDropdownOption } from "office-ui-fabric-react";
+import { ISupportingDocItem } from "./Common/ISupportingDocItem";
 import { IProposal } from "./IProposal";
 
 export interface InsuranceNapaState {
@@ -16,23 +17,23 @@ export interface InsuranceNapaState {
   proposalObject: IProposal;
   proposalObj: IProposal;
   applicationCompletedBy: string;
-  sponser: string;
-  tradingBookOwner: string;
-  workstreamCoordinator: string;
+  sponser: string[];
+  tradingBookOwner: string[];
+  workstreamCoordinator: string[];
   targetCompletionDate: Date;
   ID?: number;
   Title?: string; // Proposal Name
   TargetCompletionDate?: Date | string; // Target Launch Date
   AppCreatedById?: number; //Application completed by
-  SponsorId?: number; // Sponsor
-  TradingBookOwnerId?: number; // Trading Book/P&L Owner
-  WorkStreamCoordinatorId?: number; // Workstream Coordinator
+  SponsorId?: number[]; // Sponsor
+  TradingBookOwnerId?: number[]; // Trading Book/P&L Owner
+  WorkStreamCoordinatorId?: number[]; // Workstream Coordinator
   Region?: string[]; // Region
   Country0?: string; // Country
   Company?: string; // Company
   BusinessArea?: string; // Business Area
   ExecutiveSummary?: string; // Executive Summary
-  ProductArea0?: string; // Product Area
+  ProductArea0?: string[]; // Product Area
   SubProduct?: string; // Sub Product
   NewForProposal?: string; // What is new for this Proposal?
   TransactionInPipeline?: string; // Is there a specific transaction in the pipeline?
@@ -44,7 +45,7 @@ export interface InsuranceNapaState {
   IFCountry?: string[]; // Infrastructure Support Country
   SalesTeamLocation?: string[]; // Sales/Coverage Team Location
   ClientLocation?: string[]; // Target Client Location
-  ClientSector?: string[]; // Target Client Sector
+  ClientSector?: string; // Target Client Sector
   ProductOfferingCountry?: string[]; // Country of Product Offering
   BookingCurrencies?: string[]; // Booking/Applicable Currencies
   BookingLocation?: string[]; // Booking Location
@@ -65,4 +66,100 @@ export interface InsuranceNapaState {
   ResetToEnqComment?: string; // Reset Enquiry Comment
   TeamAssesmentReasonOptions: IDropdownOption[];
   ProductFamilyOptions: IDropdownOption[];
+  selectedSection: string;
+  BUPRCDate?: Date; // BU PRC Date
+  bUPRCDate?: Date; // BU PRC Date
+  ExistingFamily?: string; // Existing family or new family
+  ActionsRasedByBUPRC?: string; // Actions/ conditions/ commets raised by BU PRC
+  InfraAreaApprovedByBUPRCId?: number[]; // Infrustructures area approved by BU PRC
+  nAPATeamCoordinators: string[];
+  infraAreaApprovedByBUPRC: string[];
+  buttonClickedDisabled: boolean;
+  SupportingDocs: ISupportingDocItem[];
+  attachmentAdded?: string;
+  isAttachmentAdded?: boolean;
+  ResetToNPSDComment?: string;
+  RiskRanking?: string;
+  ResetPipelineComment?: string;
+  BusinessCaseApprovalComment?: string; //NPS Pipeline Review Comments
+  LegalReviewer: string[];
+  LegalReviewerId?: number[];
+  ITReviewer: string[];
+  ITReviewerId?: number[];
+  FinancialCrimeReviewer: string[];
+  FinancialCrimeReviewerId?: number[];
+  TaxReviewer: string[];
+  TaxReviewerId?: number[];
+  FraudRiskReviewer: string[];
+  FraudRiskReviewerId?: number[];
+  ComplianceReviwer: string[];
+  ComplianceReviwerId?: number[];
+  OperationsReviewer: string[];
+  OperationsReviewerId?: number[];
+  CRMReviewer: string[];
+  CRMReviewerId?: number[];
+  CreditRiskReviwer: string[];
+  CreditRiskReviwerId?: number[];
+  MarketRiskReviewer: string[];
+  MarketRiskReviewerId?: number[];
+  ProductControlReviewer: string[];
+  ProductControlReviewerId?: number[];
+  RegulatoryReportingReviewer: string[];
+  RegulatoryReportingReviewerId?: number[];
+  TreasuryReviewer: string[];
+  TreasuryReviewerId?: number[];
+  TreasuryRiskReviewer: string[];
+  TreasuryRiskReviewerId?: number[];
+  IRMReviewer: string[];
+  IRMReviewerId?: number[];
+  GroupResilienceReviewer: string[];
+  GroupResilienceReviewerId?: number[];
+  FinancialReportingReviewer: string[];
+  FinancialReportingReviewerId?: number[];
+  ConductRiskReviewer: string[];
+  ConductRiskReviewerId?: number[];
+  BusinessCaseApprovalFrom: string;
+  BusinessCaseApprovalFromId?: number;
+  ReinsuranceReviewer: string[];
+  ReinsuranceReviewerId?: number[];
+  CustomerExperienceReviewer: string[];
+  CustomerExperienceReviewerId?: number[];
+  DistributionReviewer: string[];
+  DistributionReviewerId?: number[];
+  businessCaseApprovalDate?: Date;
+  BusinessCaseApprovalDate?: Date;
+  targetBusinessGoLive?: Date;
+  TargetBusinessGoLive?: Date;
+  nAPABriefingDate?: Date;
+  NAPABriefingDate?: Date;
+  targetSubmissionByBusiness?: Date;
+  TargetSubmissionByBusiness?: Date;
+  Approval_x0020_withdrawn_x0020_d?: string | Date;
+  OtherStatuses?: string;
+  OtherStatusComments?: string;
+  ProposalDateWithdrawal?: string | Date;
+  ActionsRaisedByExco?: string;
+  BIRORegionalHeadId?: number;
+  BIRORegionalHead?: string;
+  BIRORegionalHeadReviewDate?: string | Date;
+  bIRORegionalHeadReviewDate?: string | Date;
+  CROStatus?: string;
+  CROStatusDate?: string | Date;
+  cROStatusDate?: string | Date;
+  CROComment?: string;
+  FinalRiskClassification?: string;
+  IsPostImplementationRequired?: string;
+  TargetDueDate?: string | Date;
+  targetDueDate?: string | Date;
+  OperationalChecklistRequirement?: string;
+  PIRDateCompleted?: string | Date;
+  pIRDateCompleted?: string | Date;
+  PIRComments: string;
+  ResetFinalNPSComment?: string;
+  InfrastructureApprovalCount?: number;
+  ProductGovernanceCustodians?: string;
+  ATTChairId?: number;
+  ChairComments?: string;
+  InfrastructureCount?: number;
+  ApprovedItems?: any[];
 }

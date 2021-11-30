@@ -22,7 +22,7 @@ const proposalObj = {
 };
 const napaStages = [
   "Enquiry",
-  "NPS Determination",
+  "Proposal",
   "Pipeline",
   "NPS Pipeline Review",
   "Infrastructure Review",
@@ -149,9 +149,8 @@ export default class NapaDashboard extends React.Component<
         const checkInfraReviewers = (groupName) => {
           return groupName.indexOf("NPS Infrastructure ") != -1;
         };
-        proposalObj["infraReviewers"] = CurrentUserGroups.filter(
-          checkInfraReviewers
-        );
+        proposalObj["infraReviewers"] =
+          CurrentUserGroups.filter(checkInfraReviewers);
         const ListofCountries = [
           "Botswana",
           "Ghana",
@@ -160,7 +159,7 @@ export default class NapaDashboard extends React.Component<
           "Mozambique",
           "Seychelles",
           "South Africa",
-          "Tanzania (BBT)",
+          "Tanzania (ABT)",
           "Tanzania (NBC)",
           "Uganda",
           "Zambia",

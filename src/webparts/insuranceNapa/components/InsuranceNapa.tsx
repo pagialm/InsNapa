@@ -1,41 +1,8 @@
 import * as React from "react";
 import styles from "./InsuranceNapa.module.scss";
 import { IInsuranceNapaProps } from "./IInsuranceNapaProps";
-import { escape } from "@microsoft/sp-lodash-subset";
-import MenuIcon from "./MenuIcon";
-import HeaderInfo from "./HeaderInfo";
-import {
-  TextField,
-  Checkbox,
-  ICheckboxProps,
-  Dropdown,
-  DropdownMenuItemType,
-  IDropdownStyles,
-  IDropdownOption,
-  DatePicker,
-  IStackStyles,
-  IStackProps,
-  Stack,
-  autobind,
-  Toggle,
-  Separator,
-  DefaultButton,
-  PrimaryButton,
-  ITextFieldProps,
-  getTheme,
-  FontWeights,
-  ITheme,
-  Label,
-  Button,
-  BaseButton,
-  MessageBar,
-  MessageBarType,
-  MessageBarButton,
-} from "office-ui-fabric-react/lib";
-import {
-  PeoplePicker,
-  PrincipalType,
-} from "@pnp/spfx-controls-react/lib/PeoplePicker";
+import MenuIcon from "./Common/MenuIcon";
+import { IDropdownOption, Stack, autobind } from "office-ui-fabric-react/lib";
 import { InsuranceNapaState } from "./InsuranceNapaState";
 import {
   SPHttpClient,
@@ -43,17 +10,19 @@ import {
   ISPHttpClientOptions,
 } from "@microsoft/sp-http";
 import { IProposal } from "./IProposal";
-import FilteredDropdown from "./FilteredDropdown";
-import { HttpRequestError } from "@pnp/odata";
-import * as HeadersDecor from "./Headers";
-import NPSDetermination from "./NPSDetermination/NPSDetermination";
-const stackTokens = { childrenGap: 50 };
-const stackStyles: Partial<IStackStyles> = { root: { width: 784 } };
-const columnProps: Partial<IStackProps> = {
-  tokens: { childrenGap: 10 },
-  styles: { root: { width: 450 } },
-};
-const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
+import Proposal from "./Proposal/Proposal";
+import Enquiry from "./Enquiry/Enquiry";
+import SupportingDocuments from "./Common/SupportingDocuments";
+import Pipeline from "./Pipeline/Pipeline";
+import NPSPipelineReview from "./NPSPipelineReview/NPSPipelineReview";
+import DatesAndUserUtil from "./Common/DatesAndUserUtil";
+import Utility from "./Common/Utility";
+import InfrastructureReview from "./InfrastructureReview/InfrastructureReview";
+import ApprovalSummary from "./ApprovalSummary/ApprovalSummary";
+import OtherStatus from "./OtherStatus/OtherStatus";
+import FinalNPSReview from "./FinalNPSReview/FinalNPSReview";
+import ApprovalToTrade from "./ApprovalToTrade/ApprovalToTrade";
+
 const proposalObj = {
   countriesListname: "Countries",
   productsListname: "Entities",
@@ -68,33 +37,29 @@ const proposalObj = {
   teamAssessmentReasonListname: "NAPA Team Assessment Reason",
   userObjects: [],
   userObjectsCount: 0,
-  //proposalObj: {},
+  supportingDocsListname: "NAPA Supporting Documentation",
+  napaApprovalsListname: "NAPA Infrastructure Approvals",
 };
-const proposalRegions: IDropdownOption[] = [
-  { key: "ARO", text: "ARO" },
-  { key: "SA", text: "SA" },
-  // { key: "UK", text: "UK" },
-  // { key: "USA", text: "USA" },
-];
 const productFamRiskClass: IDropdownOption[] = [
   { key: "High", text: "High" },
   { key: "Medium", text: "Medium" },
   { key: "Low", text: "Low" },
 ];
-const SuccessExample = () => (
-  <MessageBar messageBarType={MessageBarType.success} isMultiline={false}>
-    You NPA has been successfully submitted!
-  </MessageBar>
-);
-const ErrorExample = (message: string) => (
-  <MessageBar
-    messageBarType={MessageBarType.error}
-    isMultiline={false}
-    dismissButtonAriaLabel="Close"
-  >
-    {message}
-  </MessageBar>
-);
+
+let menuObj = {};
+
+const mainStatuses = [
+  "Enquiry",
+  "NPS Determination",
+  "Pipeline",
+  "NPS Pipeline Review",
+  "Infrastructure Review",
+  "Final NPS Review",
+  "Chair Approval",
+  "Approval to Trade",
+  "Approved to Trade",
+  "Approval Expired",
+];
 
 export default class InsuranceNapa extends React.Component<
   IInsuranceNapaProps,
@@ -116,24 +81,24 @@ export default class InsuranceNapa extends React.Component<
       subProducts: [],
       proposalObject: {},
       applicationCompletedBy: "",
-      sponser: "",
-      tradingBookOwner: "",
-      workstreamCoordinator: "",
+      sponser: [],
+      tradingBookOwner: [],
+      workstreamCoordinator: [],
       targetCompletionDate: null,
       proposalObj: {},
       ID: 0,
       Title: "",
       TargetCompletionDate: null,
       AppCreatedById: 0,
-      SponsorId: 0,
-      TradingBookOwnerId: 0,
-      WorkStreamCoordinatorId: 0,
+      SponsorId: [],
+      TradingBookOwnerId: [],
+      WorkStreamCoordinatorId: [],
       Region: [],
       Country0: "",
       Company: "",
       BusinessArea: "",
       ExecutiveSummary: "",
-      ProductArea0: "",
+      ProductArea0: [],
       SubProduct: "",
       NewForProposal: "",
       TransactionInPipeline: "",
@@ -145,7 +110,7 @@ export default class InsuranceNapa extends React.Component<
       IFCountry: [],
       SalesTeamLocation: [],
       ClientLocation: [],
-      ClientSector: [],
+      ClientSector: "",
       ProductOfferingCountry: [],
       BookingCurrencies: [],
       BookingLocation: [],
@@ -159,10 +124,57 @@ export default class InsuranceNapa extends React.Component<
       errorMessage: [],
       ProductFamilyOptions: [],
       TeamAssesmentReasonOptions: [],
+      selectedSection: "",
+      BUPRCDate: null,
+      ExistingFamily: "",
+      ActionsRasedByBUPRC: "",
+      InfraAreaApprovedByBUPRCId: [],
+      nAPATeamCoordinators: [],
+      infraAreaApprovedByBUPRC: [],
+      buttonClickedDisabled: false,
+      SupportingDocs: [],
+      attachmentAdded: "",
+      ResetToNPSDComment: "",
+      LegalReviewer: [],
+      ITReviewer: [],
+      FinancialCrimeReviewer: [],
+      TaxReviewer: [],
+      FraudRiskReviewer: [],
+      ComplianceReviwer: [],
+      OperationsReviewer: [],
+      CRMReviewer: [],
+      CreditRiskReviwer: [],
+      MarketRiskReviewer: [],
+      ProductControlReviewer: [],
+      RegulatoryReportingReviewer: [],
+      TreasuryReviewer: [],
+      TreasuryRiskReviewer: [],
+      IRMReviewer: [],
+      GroupResilienceReviewer: [],
+      FinancialReportingReviewer: [],
+      ConductRiskReviewer: [],
+      BusinessCaseApprovalFrom: "",
+      ReinsuranceReviewer: [],
+      CustomerExperienceReviewer: [],
+      DistributionReviewer: [],
+      isAttachmentAdded: false,
+      Approval_x0020_withdrawn_x0020_d: null,
+      ProposalDateWithdrawal: null,
+      PIRComments: "",
+      ResetFinalNPSComment: "",
     };
   }
+  @autobind
+  private menuClicked(e, menu) {
+    console.log(menu);
+    // debugger;
+    if (e.target.innerText === "Infrastructure Review")
+      this.setState({ selectedSection: "Enquiry" });
+    else this.setState({ selectedSection: e.target.innerText });
+    console.log(this.state);
+    menuObj = menu;
+  }
   public async componentDidMount(): Promise<void> {
-    const handler = this;
     const allCountriesArr: IDropdownOption[] = [];
     const someCountries: IDropdownOption[] = [];
     const clientSectorsArr: IDropdownOption[] = [];
@@ -232,63 +244,121 @@ export default class InsuranceNapa extends React.Component<
     });
 
     // get Proposal
-    if (this.props.itemId && this.props.itemId > 0)
-      this._getListitem(
-        proposalObj.napaProposalsListname,
-        this.props.itemId
-      ).then((item) => {
-        const _item: IProposal = item as IProposal;
-        for (const key in _item) {
-          if (Object.prototype.hasOwnProperty.call(_item, key)) {
-            const element = _item[key];
-            var newEl = {};
-            newEl[key] = element;
-            try {
-              this.setState(newEl);
-            } catch (err) {}
-          }
-        }
-        this.setState({ proposalObject: _item });
-        this.setState({ proposalObj: _item });
-        const userObjects = [
-          { stateName: "applicationCompletedBy", itemName: "AppCreatedById" },
-          { stateName: "sponser", itemName: "SponsorId" },
-          { stateName: "tradingBookOwner", itemName: "TradingBookOwnerId" },
-          {
-            stateName: "workstreamCoordinator",
-            itemName: "WorkStreamCoordinatorId",
-          },
-        ];
-        const dateObjects = [
-          {
-            stateName: "targetCompletionDate",
-            itemName: "TargetCompletionDate",
-          },
-        ];
-        const newstate = {};
-        userObjects.forEach((userObject) => {
-          this._getUserById(_item[userObject.itemName]).then((user) => {
-            if (user.length > 0) {
-              newstate[userObject.stateName] = user[0].Title;
-              this.setState(newstate);
+    if (this.props.itemId && this.props.itemId > 0) {
+      //Get Approved List items
+      const approvedItemsFilterStr: string = `Proposal_ID eq '${this.props.itemId}'&$select=Proposal_ID,NAPA_Infra,Author/Title,Created&$expand=Author/Title`;
+      if (
+        this.state.Status !== mainStatuses[0] &&
+        this.state.Status !== mainStatuses[1] &&
+        this.state.Status !== mainStatuses[2] &&
+        this.state.Status !== mainStatuses[3]
+      )
+        this._getListitemsFilter(
+          proposalObj.napaApprovalsListname,
+          approvedItemsFilterStr
+        ).then((items) => {
+          this.setState({ ApprovedItems: items });
+        });
+      //Get current proposal
+      this._getListitem(proposalObj.napaProposalsListname, this.props.itemId)
+        .then((item) => {
+          const _item: IProposal = item as IProposal;
+          return _item as Promise<IProposal>;
+        })
+        .then((itemAsProposal) => {
+          this._getListitemsFilter(
+            proposalObj.productsListname,
+            `Title eq '${itemAsProposal.Company}'`
+          ).then(async (filteredItems: any[]) => {
+            const productAreasOptions = this.filterArrayOfOptions(
+              filteredItems,
+              "ProductFamily",
+              "Title",
+              itemAsProposal.Company
+            );
+            debugger;
+            const _item = itemAsProposal;
+            this.setState({ businessAreas: productAreasOptions });
+            if (_item["Status"] === "Infrastructure Review")
+              this.setState({ selectedSection: "Enquiry" });
+            else {
+              const isInMainItems = mainStatuses.filter(
+                (s) => s === _item["Status"]
+              );
+              if (isInMainItems.length > 0)
+                this.setState({ selectedSection: _item["Status"] });
+              else this.setState({ selectedSection: "Other Status" });
             }
+
+            const dateObjects = DatesAndUserUtil.GetDates();
+            const userObjects = DatesAndUserUtil.GetDisplayNames(
+              _item,
+              this._getUserById
+            );
+            (await userObjects).forEach((element) => {
+              this.setState(element);
+            });
+
+            dateObjects.forEach((dateObject) => {
+              const newstate = {};
+              if (_item[dateObject.itemName]) {
+                newstate[dateObject.stateName] = new Date(
+                  _item[dateObject.itemName]
+                );
+                this.setState(newstate);
+              }
+            });
+            this.setState({ ..._item });
+            this.setState({ proposalObject: _item });
+            this.setState({ proposalObj: _item });
+            console.log(_item);
+            debugger;
           });
         });
-        dateObjects.forEach((dateObject) => {
-          if (_item[dateObject.itemName]) {
-            newstate[dateObject.stateName] = new Date(
-              _item[dateObject.itemName]
-            );
-            this.setState(newstate);
-          }
-        });
-      });
+    }
   }
-  private _getUserById(userId: number | string): Promise<any> {
-    const url: string =
-      this.props.context.pageContext.site.absoluteUrl +
-      "/_api/web/siteusers?$filter=ID eq " +
-      userId;
+  @autobind
+  private updateState(stateObject) {
+    this.setState(stateObject);
+  }
+  private filterArrayOfOptions(
+    filtereItems,
+    fieldName,
+    parentField,
+    parentFieldValue
+  ): IDropdownOption[] {
+    const arrayOptions = filtereItems
+      .map((fi) => {
+        if (fi[parentField] === parentFieldValue) return fi[fieldName];
+      })
+      .filter((value, index, self) => self.indexOf(value) === index); //{
+
+    const arrayOptionsObjs = arrayOptions.map((str) => ({
+      key: str,
+      text: str,
+    }));
+    return arrayOptionsObjs;
+  }
+  private _getUserIdsFilter(userIds: Array<number>): string {
+    let userIdsfilter = "";
+    userIds.forEach((userId) => {
+      userIdsfilter += "ID eq " + userId + ",";
+    });
+    const retString = userIdsfilter
+      .substr(0, userIdsfilter.length - 1)
+      .split(",")
+      .join(" or ");
+    return retString;
+  }
+  @autobind
+  private _getUserById(userId: number | string | Array<number>): Promise<any> {
+    const url: string = !Array.isArray(userId)
+      ? this.props.context.pageContext.site.absoluteUrl +
+        "/_api/web/siteusers?$filter=ID eq " +
+        userId
+      : this.props.context.pageContext.site.absoluteUrl +
+        "/_api/web/siteusers?$filter=" +
+        this._getUserIdsFilter(userId);
     return this.props.context.spHttpClient
       .get(url, SPHttpClient.configurations.v1)
       .then((response) => {
@@ -355,13 +425,14 @@ export default class InsuranceNapa extends React.Component<
     listName: string,
     filter: string
   ): Promise<any[]> {
+    const ctx = this.props ? this.props.context : this.context;
     const url: string =
-      this.props.context.pageContext.site.absoluteUrl +
+      ctx.pageContext.site.absoluteUrl +
       "/_api/web/lists/getbytitle('" +
       listName +
       "')/items?$filter=" +
       filter;
-    return this.props.context.spHttpClient
+    return ctx.spHttpClient
       .get(url, SPHttpClient.configurations.v1)
       .then((response) => {
         return response.json();
@@ -405,8 +476,8 @@ export default class InsuranceNapa extends React.Component<
   }
   @autobind
   private _loadFilteredDropdown(fieldName: string, columnName: string) {
-    const companyName = document.getElementById("ddlCompany").firstChild
-      .textContent!;
+    const companyName =
+      document.getElementById("ddlCompany").firstChild.textContent!;
     this._getListitemsFilter(
       proposalObj.productsListname,
       "Title eq '" + companyName + "'"
@@ -455,9 +526,36 @@ export default class InsuranceNapa extends React.Component<
     option?: IDropdownOption,
     index?: number
   ): void {
-    const elementId = ev.currentTarget.id.split("_")[1].split("-")[0];
+    const selectedElement = ev.target as HTMLDivElement;
+    const elementId = selectedElement.id.split("_")[1].split("-")[0];
     const el = {};
-    el[elementId] = option.key;
+
+    debugger;
+    //Todo: Find old element, check its type... array or primitive and act accodingly
+    const oldState = this.state[elementId]; //el[elementId];
+    if (
+      Array.isArray(oldState) ||
+      (selectedElement["type"] && selectedElement["type"] === "checkbox")
+    ) {
+      debugger;
+      const newArray = oldState ? [...oldState] : [];
+      if (
+        oldState &&
+        oldState.some((opt) => {
+          return opt === option.key;
+        })
+      ) {
+        const finalArray = newArray.filter((itemToFilter) => {
+          return itemToFilter !== option.key;
+        });
+        el[elementId] = finalArray;
+      } else {
+        newArray.push(option.key);
+        el[elementId] = newArray;
+      }
+    } else {
+      el[elementId] = elementId === "Region" ? [option.key] : option.key;
+    }
     this.setState(el);
   }
   @autobind
@@ -466,7 +564,7 @@ export default class InsuranceNapa extends React.Component<
     newValue: string
   ): void {
     const element = ev.target as HTMLElement;
-
+    debugger;
     const el = {};
     el[element.id.split("_")[1]] = newValue;
     this.setState(el);
@@ -507,11 +605,45 @@ export default class InsuranceNapa extends React.Component<
     return isValid;
   }
   @autobind
-  private _saveApplicationProposal(e) {
+  private _saveApplicationProposal(e): void {
     debugger;
-    // console.log(this);
+    this.setState({ buttonClickedDisabled: true });
     const buttonClicked: string = e.target.innerText;
-    let statusText = "NPS Determination";
+    let statusText = "Pipeline";
+    if (buttonClicked === "Save") statusText = "Proposal";
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    proposal["Status"] = statusText; // Reset to Enquiry
+    if (buttonClicked === "Reset to Enquiry") {
+      proposal["ResetToEnqComment"] = this.state.ResetToEnqComment; // Reset to Enquiry
+      proposal["Status"] = "Enquiry"; // Reset to Enquiry
+    } else {
+      proposal["NapaTeamAssessment"] = this.state.NapaTeamAssessment; // Insurance BU PRC Classification
+      proposal["NapaTeamAssReason"] = this.state.NapaTeamAssReason; // Insurance BU PRU Outcome
+      proposal["BUPRCDate"] = this.state.BUPRCDate; // BU PRC Date
+      proposal["NAPATeamCoordinatorsId"] = this.state.NAPATeamCoordinatorsId
+        ? this.state.NAPATeamCoordinatorsId
+        : []; // Product Governance Team Coordinator
+      proposal["ProductFamily"] = this.state.ProductFamily; // Product Family
+      proposal["ProductFamilyRiskClassification"] =
+        this.state.ProductFamilyRiskClassification; // Product Family Risk Classification
+      proposal["ExistingFamily"] = this.state.ExistingFamily; // Existing family or new family
+      proposal["ApprovalCapacity"] = this.state.ApprovalCapacity; // Approval Capacity
+      proposal["ActionsRasedByBUPRC"] = this.state.ActionsRasedByBUPRC; // Actions/ conditions/ commets raised by BU PRC
+      proposal["InfraAreaApprovedByBUPRCId"] = this.state
+        .InfraAreaApprovedByBUPRCId
+        ? this.state.InfraAreaApprovedByBUPRCId
+        : []; // Infrustructures area approved by BU
+    }
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  @autobind
+  private _saveApplicationEnquiry(e) {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = "Proposal";
     if (buttonClicked === "Save as Draft") statusText = "Enquiry";
     const _isFormValid =
       buttonClicked === "Save as Draft" ? true : this._validateForm();
@@ -519,17 +651,15 @@ export default class InsuranceNapa extends React.Component<
 
     proposal["Title"] = this.state.Title;
     proposal["TargetCompletionDate"] = this.state.targetCompletionDate;
-    if (this.state.AppCreatedById)
-      proposal["AppCreatedById"] = this.state.AppCreatedById;
-    if (this.state.SponsorId) proposal["SponsorId"] = [this.state.SponsorId];
-    if (this.state.TradingBookOwnerId)
-      proposal["TradingBookOwnerId"] = this.state.TradingBookOwnerId;
-    if (this.state.WorkStreamCoordinatorId)
-      proposal["WorkStreamCoordinatorId"] = [
-        this.state.WorkStreamCoordinatorId,
-      ];
-    if (this.state.Region && this.state.Region.length > 0)
-      proposal["Region"] = [this.state.Region];
+    proposal["AppCreatedById"] = this.state.AppCreatedById;
+    proposal["SponsorId"] = this.state.SponsorId ? this.state.SponsorId : [];
+    proposal["TradingBookOwnerId"] = this.state.TradingBookOwnerId
+      ? this.state.TradingBookOwnerId
+      : [];
+    proposal["WorkStreamCoordinatorId"] = this.state.WorkStreamCoordinatorId
+      ? this.state.WorkStreamCoordinatorId
+      : [];
+    proposal["Region"] = this.state.Region ? this.state.Region : [];
     proposal["Country0"] = this.state.Country0;
     proposal["Company"] = this.state.Company;
     proposal["BusinessArea"] = this.state.BusinessArea;
@@ -541,33 +671,41 @@ export default class InsuranceNapa extends React.Component<
     proposal["LinkToExistingProposal"] = this.state.LinkToExistingProposal;
     proposal["TaxTreatment"] = this.state.TaxTreatment;
     proposal["LineOfCredit"] = this.state.LineOfCredit;
-    proposal[
-      "ConductRiskIssuesComments"
-    ] = this.state.ConductRiskIssuesComments;
+    proposal["ConductRiskIssuesComments"] =
+      this.state.ConductRiskIssuesComments;
     proposal["PrincipalRisks"] = this.state.PrincipalRisks;
-    if (this.state.IFCountry && this.state.IFCountry.length > 0)
-      proposal["IFCountry"] = this.state.IFCountry;
-    if (this.state.SalesTeamLocation && this.state.SalesTeamLocation.length > 0)
-      proposal["SalesTeamLocation"] = this.state.SalesTeamLocation;
-    if (this.state.ClientLocation && this.state.ClientLocation.length > 0)
-      proposal["ClientLocation"] = this.state.ClientLocation;
-    if (this.state.ClientSector)
-      proposal["ClientSector"] = this.state.ClientSector;
-    if (this.state.ProductOfferingCountry)
-      proposal["ProductOfferingCountry"] = this.state.ProductOfferingCountry;
-    if (this.state.BookingCurrencies)
-      proposal["BookingCurrencies"] = this.state.BookingCurrencies;
-    if (this.state.BookingLocation)
-      proposal["BookingLocation"] = this.state.BookingLocation;
-    if (this.state.NatureOfTrade)
-      proposal["NatureOfTrade"] = this.state.NatureOfTrade;
-    if (this.state.TraderLocation)
-      proposal["TraderLocation"] = this.state.TraderLocation;
-    if (this.state.BookingEntity)
-      proposal["BookingEntity"] = this.state.BookingEntity;
+    proposal["IFCountry"] = this.state.IFCountry ? this.state.IFCountry : [];
+    proposal["SalesTeamLocation"] = this.state.SalesTeamLocation
+      ? this.state.SalesTeamLocation
+      : [];
+    proposal["ClientLocation"] = this.state.ClientLocation
+      ? this.state.ClientLocation
+      : [];
+    proposal["ClientSector"] = this.state.ClientSector
+      ? this.state.ClientSector
+      : [];
+    proposal["ProductOfferingCountry"] = this.state.ProductOfferingCountry
+      ? this.state.ProductOfferingCountry
+      : [];
+    proposal["BookingCurrencies"] = this.state.BookingCurrencies
+      ? this.state.BookingCurrencies
+      : [];
+    proposal["BookingLocation"] = this.state.BookingLocation
+      ? this.state.BookingLocation
+      : [];
+    proposal["NatureOfTrade"] = this.state.NatureOfTrade;
+    proposal["TraderLocation"] = this.state.TraderLocation
+      ? this.state.TraderLocation
+      : [];
+    proposal["BookingEntity"] = this.state.BookingEntity
+      ? this.state.BookingEntity
+      : [];
     proposal["JointVenture"] = this.state.JointVenture;
     proposal["Status"] = statusText;
-
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  private submitToSP(proposal: any): void {
     const url: string =
       this.state.ID == 0
         ? this.props.context.pageContext.web.absoluteUrl +
@@ -592,38 +730,111 @@ export default class InsuranceNapa extends React.Component<
       spHttpClientOptions["headers"] = headers;
     }
     // {
-    if (_isFormValid) {
-      this.props.context.spHttpClient
-        .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
-        .then((response: SPHttpClientResponse) => {
-          if (response.status >= 201 && response.status < 300) {
-            this.setState({ submitionStatus: "Ok" });
-            setTimeout(() => {
-              location.href = this.props.context.pageContext.web.absoluteUrl;
-            }, 500);
-          } else {
-            this.setState({
-              errorMessage: [
-                `Error: [HTTP]:${response.status} [CorrelationId]:${response.statusText}`,
-              ],
-            });
-          }
-        });
+    // if (_isFormValid) {
+    this.props.context.spHttpClient
+      .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
+      .then((response: SPHttpClientResponse) => {
+        if (response.status >= 201 && response.status < 300) {
+          this.setState({ submitionStatus: "Ok" });
+          setTimeout(() => {
+            location.href = this.props.context.pageContext.web.absoluteUrl;
+          }, 500);
+        } else {
+          this.setState({
+            errorMessage: [
+              `Error: [HTTP]:${response.status} [CorrelationId]:${response.statusText}`,
+            ],
+            buttonClickedDisabled: false,
+          });
+        }
+      });
+    //}
+  }
+  @autobind
+  private submitToOtherSPList(
+    listname: string,
+    isNewItem: boolean,
+    listItem: any,
+    responseFunc: any
+  ): void {
+    const url: string = isNewItem
+      ? this.props.context.pageContext.web.absoluteUrl +
+        "/_api/web/lists/getbytitle('" +
+        listname +
+        "')/items"
+      : this.props.context.pageContext.web.absoluteUrl +
+        "/_api/web/lists/getbytitle('" +
+        listname +
+        "')/items(" +
+        listItem.ID +
+        ")";
+    const spHttpClientOptions: ISPHttpClientOptions = {
+      body: JSON.stringify(listItem),
+    };
+
+    if (!isNewItem) {
+      const headers: any = {
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      };
+      spHttpClientOptions["headers"] = headers;
     }
-    // }
+
+    this.props.context.spHttpClient
+      .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
+      .then((response: SPHttpClientResponse) => {
+        responseFunc(response);
+      });
+  }
+  @autobind
+  private _DeleteFromSP(
+    listname: string,
+    itemToDelete: any,
+    returnFunc: any
+  ): void {
+    const url: string =
+      this.props.context.pageContext.web.absoluteUrl +
+      "/_api/web/lists/getbytitle('" +
+      listname +
+      "')/items(" +
+      itemToDelete.ID +
+      ")";
+    const spHttpClientOptions: ISPHttpClientOptions = {
+      body: JSON.stringify(itemToDelete),
+    };
+    const headers: any = {
+      "X-HTTP-Method": "DELETE",
+      "IF-MATCH": "*",
+    };
+    spHttpClientOptions["headers"] = headers;
+
+    this.props.context.spHttpClient
+      .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
+      .then((response: SPHttpClientResponse) => {
+        returnFunc(response);
+      });
   }
   @autobind
   private _cancelProposal() {
     location.href = this.props.context.pageContext.web.absoluteUrl;
   }
   @autobind
-  private _onSelectDate(date: Date | null | undefined): void {
-    this.setState({ targetCompletionDate: date });
+  private _onSelectDate(stateObjectString: string, date: Date): void {
+    const objectState = {};
+    objectState[stateObjectString] = date;
+
+    const firstLetter = stateObjectString[0].toLocaleLowerCase();
+    const secondaryStateObjStr = firstLetter + stateObjectString.substr(1);
+    objectState[secondaryStateObjStr] = date;
+
+    this.setState(objectState);
   }
+
   @autobind
   private _onFormatDate(date: Date): string {
+    const _date: Date = typeof date === "string" ? new Date(date) : date;
     return (
-      date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear()
+      _date.getDate() + "/" + (_date.getMonth() + 1) + "/" + _date.getFullYear()
     );
   }
   @autobind
@@ -676,515 +887,591 @@ export default class InsuranceNapa extends React.Component<
       this.setState(stateObj);
     });
   }
+  @autobind
+  private _addAttachments(): void {
+    debugger;
+    const fileToUpload = (
+      document.querySelector(
+        "#btnAddAttachments_NBS_System"
+      ) as HTMLInputElement
+    ).files[0];
+    this.GetFolderServerRelativeURL(
+      fileToUpload,
+      `${this.props.itemId}_${fileToUpload.name}`,
+      "Shared Documents"
+      // proposalObj.supportingDocsListname
+    );
+  }
+  public getFileBuffer(uploadedFiles): Promise<any> {
+    let promised = new Promise((resolve, reject) => {
+      // debugger;
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target["result"]);
+      };
+      reader.onerror = (e) => {
+        reject(e.target["error"]);
+      };
+      reader.readAsArrayBuffer(uploadedFiles);
+    });
+
+    return promised;
+  }
+  public GetFolderServerRelativeURL(file, FinalName, DocumentLibPath): void {
+    try {
+      const spOpts: ISPHttpClientOptions = {
+        body: file,
+      };
+      if (this.state.isAttachmentAdded)
+        this.setState({ isAttachmentAdded: false });
+      var redirectionURL =
+        this.props.context.pageContext.site.absoluteUrl +
+        "/_api/Web/GetFolderByServerRelativeUrl('" +
+        DocumentLibPath +
+        "')/Files/Add(url='" +
+        FinalName +
+        "',overwrite=true)?$select=*&$expand=ListItemAllFields";
+      this.getFileBuffer(file).then(() => {
+        this.props.context.spHttpClient
+          .post(redirectionURL, SPHttpClient.configurations.v1, spOpts)
+          .then((response: SPHttpClientResponse) => {
+            response.json().then((docItem: any) => {
+              // debugger;
+              const docItemProps = {
+                ProposalId: this.props.itemId.toString(),
+                DocumentLink: `${this.props.context.pageContext.site.absoluteUrl}/${DocumentLibPath}/${docItem.Name}`,
+                Document_x0020_Type: this.state.selectedSection,
+                NewDocName: docItem.Name,
+                DocumentName: docItem.Name,
+              };
+              this.props.context.spHttpClient
+                .post(
+                  `${this.props.context.pageContext.site.absoluteUrl}/_api/lists/getbytitle('${proposalObj.supportingDocsListname}')/Items(${docItem.ListItemAllFields.Id})`,
+                  SPHttpClient.configurations.v1,
+                  {
+                    headers: {
+                      Accept: "application/json;odata=nometadata",
+                      "Content-type": "application/json;odata=nometadata",
+                      "odata-version": "",
+                      "IF-MATCH": "*",
+                      "X-HTTP-Method": "MERGE",
+                    },
+                    body: JSON.stringify(docItemProps),
+                  }
+                )
+                .then(
+                  (attachResult: SPHttpClientResponse): void => {
+                    if (attachResult.ok) {
+                      this.setState({
+                        attachmentAdded:
+                          "Attachment added successfully!,Success",
+                        isAttachmentAdded: true,
+                      });
+                      // location.href = location.href;
+                    } else {
+                      this.setState({
+                        attachmentAdded:
+                          "Attachment added, however problem updating the attachment properties. Contact you administrator.,PartialSuccess",
+                      });
+                      // location.href = location.href;
+                    }
+                  },
+                  (error: any) => {
+                    console.log("Error!", error);
+                    this.setState({
+                      attachmentAdded:
+                        "Problem occured while attempting to load attachment. Contact you administrator.,Fail",
+                    });
+                    // location.href = location.href;
+                  }
+                );
+            });
+          });
+      });
+    } catch (error) {
+      console.log("Error in GetFolderServerRelativeURL " + error);
+    }
+  }
+  @autobind
+  private _savePipeline(e): void {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = "NPS Pipeline Review";
+    if (buttonClicked === "Save") statusText = "Pipeline";
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    if (statusText === "NPS Pipeline Review")
+      this.setState({ ResetToNPSDComment: "N/A" });
+    proposal["ResetToNPSDComment"] = this.state.ResetToNPSDComment;
+    proposal["Status"] = statusText;
+
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  @autobind
+  private _savePipelineReview(e): void {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = "Infrastructure Review";
+    if (buttonClicked === "Save") statusText = "NPS Pipeline Review";
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    if (statusText === "Infrastructure Review")
+      this.setState({ ResetPipelineComment: "N/A" });
+    proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
+    proposal["Status"] = statusText;
+    proposal["LegalReviewerId"] = this.state.LegalReviewerId || [];
+    proposal["ComplianceReviwerId"] = this.state.ComplianceReviwerId || [];
+    proposal["ITReviewerId"] = this.state.ITReviewerId || [];
+    proposal["OperationsReviewerId"] = this.state.OperationsReviewerId || [];
+    proposal["CreditRiskReviwerId"] = this.state.CreditRiskReviwerId || [];
+    proposal["MarketRiskReviewerId"] = this.state.MarketRiskReviewerId || [];
+    proposal["TaxReviewerId"] = this.state.TaxReviewerId || [];
+    proposal["ProductControlReviewerId"] =
+      this.state.ProductControlReviewerId || [];
+    proposal["RegulatoryReportingReviewerId"] =
+      this.state.RegulatoryReportingReviewerId || [];
+    proposal["CRMReviewerId"] = this.state.CRMReviewerId || [];
+    proposal["TreasuryReviewerId"] = this.state.TreasuryReviewerId || [];
+    proposal["TreasuryRiskReviewerId"] =
+      this.state.TreasuryRiskReviewerId || [];
+    proposal["IRMReviewerId"] = this.state.IRMReviewerId || [];
+    proposal["GroupResilienceReviewerId"] =
+      this.state.GroupResilienceReviewerId || [];
+    proposal["FraudRiskReviewerId"] = this.state.FraudRiskReviewerId || [];
+    proposal["FinancialCrimeReviewerId"] =
+      this.state.FinancialCrimeReviewerId || [];
+    proposal["FinancialReportingReviewerId"] =
+      this.state.FinancialReportingReviewerId || [];
+    proposal["ConductRiskReviewerId"] = this.state.ConductRiskReviewerId || [];
+    proposal["ConductRiskReviewerId"] = this.state.ConductRiskReviewerId || [];
+    proposal["ReinsuranceReviewerId"] = this.state.ReinsuranceReviewerId || [];
+    proposal["CustomerExperienceReviewerId"] =
+      this.state.CustomerExperienceReviewerId || [];
+    proposal["DistributionReviewerId"] =
+      this.state.DistributionReviewerId || [];
+    proposal["RiskRanking"] = this.state.RiskRanking;
+    proposal["BusinessCaseApprovalFromId"] =
+      this.state.BusinessCaseApprovalFromId[0];
+    proposal["BusinessCaseApprovalDate"] = this.state.BusinessCaseApprovalDate;
+    proposal["BusinessCaseApprovalComment"] =
+      this.state.BusinessCaseApprovalComment;
+    proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
+    proposal["TargetSubmissionByBusiness"] =
+      this.state.TargetSubmissionByBusiness; //TargetBusinessGoLive
+    proposal["TargetBusinessGoLive"] = this.state.TargetBusinessGoLive; //TargetBusinessGoLive
+    proposal["NAPABriefingDate"] = this.state.NAPABriefingDate; //TargetBusinessGoLive
+    // proposal["NAPABriefingComments"] = this.state.NAPABriefingComments;//TargetBusinessGoLive
+    debugger;
+
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  @autobind
+  private _saveFinalNPSReview(e): void {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = "Approval to Trade";
+    if (buttonClicked === "Save") statusText = "Final NPS Review";
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    if (statusText === "Approval to Trade")
+      this.setState({ ResetFinalNPSComment: "N/A" });
+    proposal["ActionsRaisedByExco"] = this.state.ActionsRaisedByExco;
+    proposal["BIRORegionalHeadId"] = this.state.BIRORegionalHeadId;
+    proposal["BIRORegionalHeadReviewDate"] =
+      this.state.BIRORegionalHeadReviewDate;
+    proposal["CROComment"] = this.state.CROComment;
+    proposal["FinalRiskClassification"] = this.state.FinalRiskClassification;
+    proposal["CROStatusDate"] = this.state.CROStatusDate;
+    proposal["CROStatus"] = this.state.CROStatus;
+    proposal["IsPostImplementationRequired"] =
+      this.state.IsPostImplementationRequired;
+    proposal["OperationalChecklistRequirement"] =
+      this.state.OperationalChecklistRequirement;
+    proposal["PIRComments"] = this.state.PIRComments;
+    proposal["PIRDateCompleted"] = this.state.PIRDateCompleted;
+    proposal["TargetDueDate"] = this.state.TargetDueDate;
+    proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
+
+    proposal["Status"] = statusText;
+
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  @autobind
+  private _ResetToInfrastructureReview(infraAreas: []) {
+    console.log(infraAreas);
+    const proposal = {};
+    let newCounter = 0;
+    infraAreas.forEach((infraArea) => {
+      const infraObj = Utility.GetInfraObject(infraArea);
+      proposal[infraObj.approvalDate] = null;
+      proposal[infraObj.comment] = this.state.ResetFinalNPSComment;
+      proposal[infraObj.approvedBy] = null;
+      newCounter++;
+    });
+    proposal["Status"] = "Infrastructure Review";
+    proposal["InfrastructureApprovalCount"] =
+      this.state.InfrastructureApprovalCount - newCounter;
+    console.log(proposal);
+    this.submitToSP(proposal);
+  }
+  @autobind
+  private _saveApprovalToTrade(e) {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = "Approved to Trade";
+    if (buttonClicked === "Save") statusText = "Approval to Trade";
+    if (buttonClicked === "Reset to Final NPS Review")
+      statusText = "Final NPS Review";
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    if (statusText === "Approved to Trade")
+      this.setState({ ResetFinalNPSComment: "N/A" });
+    proposal["ATTChairId"] = this.state.ATTChairId;
+    proposal["ChairComments"] = this.state.ChairComments;
+    proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
+    proposal["Status"] = statusText;
+    console.log(proposal);
+    if (_isFormValid) this.submitToSP(proposal);
+    else {
+      this.setState({ buttonClickedDisabled: false });
+    }
+  }
   public render(): React.ReactElement<IInsuranceNapaProps> {
     return (
       <div className={styles.insuranceNapa}>
-        {/* <div className={styles.menuItem}>Enquiery</div> */}
-        <MenuIcon iconName="Headset" stageName="Enquiry" activated={false} />
-        {this.state.Status === "Enquiry" && (
-          <Stack>
-            {this.state.ID > 0 && (
-              <HeadersDecor.default
-                proposalStatus={this.state.Status}
-                proposalId={this.state.ID}
-                selectedSection="Enquiry"
-                title={this.state.Title}
-              />
-            )}
-
-            <HeaderInfo
-              title="Application Information"
-              description="Provide the following administrative information"
-            />
-            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-              <Stack {...columnProps}>
-                <TextField
-                  label="Proposal Name:"
-                  required
-                  value={this.state.Title}
-                  id="txt_Title"
-                  onChange={this._onChangeText}
-                  description="The proposal name should contain the key distinguishing attributes associated with the proposal."
-                />
-                <PeoplePicker
-                  context={this.props.context}
-                  titleText="Application completed by"
-                  personSelectionLimit={3}
-                  showtooltip={true}
-                  disabled={false}
-                  defaultSelectedUsers={[this.state.applicationCompletedBy]}
-                  onChange={(items: any[]) => {
-                    const _users = this._getPeoplePickerItems(items);
-                    debugger;
-                    if (_users.length > 0)
-                      this.setState({
-                        AppCreatedById: _users[0],
-                      });
-                  }}
-                  // selectedItems={this._getPeoplePickerItems }
-                  showHiddenInUI={false}
-                  ensureUser={true}
-                  principalTypes={[PrincipalType.User]}
-                  resolveDelay={1000}
-                />
-                <Label className={styles.inputDesc}>
-                  The Product Originator is a business representative or
-                  business manager, or his/her delegate. The Originator will
-                  also be the person raising the Proposal Template.
-                </Label>
-                <PeoplePicker
-                  context={this.props.context}
-                  titleText="P&L Owner/ General Manager"
-                  personSelectionLimit={3}
-                  showtooltip={true}
-                  defaultSelectedUsers={[this.state.tradingBookOwner]}
-                  disabled={false}
-                  onChange={(items: any[]) => {
-                    const _users = this._getPeoplePickerItems(items);
-                    if (_users.length > 0)
-                      this.setState({
-                        TradingBookOwnerId: _users[0],
-                      });
-                  }}
-                  showHiddenInUI={false}
-                  ensureUser={true}
-                  principalTypes={[PrincipalType.User]}
-                  resolveDelay={1000}
-                />
-              </Stack>
-              <Stack {...columnProps}>
-                <DatePicker
-                  label="Target Launch Date:"
-                  isRequired
-                  value={this.state.targetCompletionDate}
-                  onSelectDate={this._onSelectDate}
-                  formatDate={this._onFormatDate}
-                />
-                <PeoplePicker
-                  context={this.props.context}
-                  titleText="Sponsor"
-                  personSelectionLimit={3}
-                  showtooltip={true}
-                  defaultSelectedUsers={[this.state.sponser]}
-                  disabled={false}
-                  onChange={(items: any[]) => {
-                    const _users = this._getPeoplePickerItems(items);
-                    if (_users.length > 0)
-                      this.setState({
-                        SponsorId: _users[0],
-                      });
-                  }}
-                  showHiddenInUI={false}
-                  ensureUser={true}
-                  principalTypes={[PrincipalType.User]}
-                  // resolveDelay={1000}
-                />
-                <Label className={styles.inputDesc}>
-                  The Sponsor generally is from the Business and must be
-                  Managing Director level (or a Desk Head in the case of Absa
-                  Capital).
-                </Label>
-                <PeoplePicker
-                  context={this.props.context}
-                  titleText="Product Owner"
-                  personSelectionLimit={3}
-                  showtooltip={true}
-                  defaultSelectedUsers={[this.state.workstreamCoordinator]}
-                  disabled={false}
-                  onChange={(items: any[]) => {
-                    const _users = this._getPeoplePickerItems(items);
-                    if (_users.length > 0)
-                      this.setState({
-                        WorkStreamCoordinatorId: _users[0],
-                      });
-                  }}
-                  showHiddenInUI={false}
-                  ensureUser={true}
-                  principalTypes={[PrincipalType.User]}
-                  // resolveDelay={1000}
-                />
-              </Stack>
-            </Stack>
-            <HeaderInfo
-              title="Product Description"
-              description="This section captures the description of NAPA. It is to be concise in order for reviewers, regardless of their expertise, to understand the NAPA. More detail can be added when the full application is submitted. Please do not embed any documents in this section."
-            />
-            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-              <Stack tokens={stackTokens} {...columnProps}>
-                <Dropdown
-                  label="Region:"
-                  options={proposalRegions}
-                  selectedKey={this.state.Region}
-                  onChange={this._onChange}
-                  id="ddl_Region"
-                  required
-                />
-              </Stack>
-              <Stack {...columnProps}>
-                <Dropdown
-                  label="Country:"
-                  options={this.state.shortCountries}
-                  selectedKey={this.state.Country0}
-                  defaultSelectedKey={this.state.Country0}
-                  onChange={this._onChange}
-                  id="ddl_Country0"
-                  required
-                />
-              </Stack>
-            </Stack>
-            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-              <Stack {...columnProps}>
-                <Dropdown
-                  label="Entity:"
-                  // onChange={() => {
-                  //   this._loadFilteredDropdown(
-                  //     "ddlProductArea",
-                  //     "Product_x0020_Area"
-                  //   );
-                  // }}
-                  onChange={this._onFilteredDropdownChange}
-                  options={this.state.companies}
-                  id="ddl_Company"
-                  selectedKey={this.state.Company}
-                  required
-                  // selectedKey={this.state.proposalObject.Company}
-                />
-                <Dropdown
-                  label="Product Family:"
-                  options={this.state.businessAreas}
-                  // onChange={() => {
-                  //   this._loadFilteredDropdown("ddlSubProducts", "Product");
-                  // }}
-                  required
-                  onChange={this._onChange}
-                  id="ddl_BusinessArea"
-                  selectedKey={this.state.BusinessArea}
-                  // selectedKey={this.state.proposalObject.BusinessArea}
-                />
-                {/*  */}
-              </Stack>
-              <Stack {...columnProps}>
-                <Dropdown
-                  label="Distribution Channel:"
-                  options={this.state.distributionChannels}
-                  // onChange={() => {
-                  //   this._loadFilteredDropdown("ddlBusinessArea", "Business");
-                  // }}
-                  title="Distribution Channels"
-                  onChange={this._onChange}
-                  id="ddl_ProductArea0"
-                  selectedKey={this.state.ProductArea0}
-                  required
-                  // selectedKey={this.state.proposalObject.ProductArea0}
-                />
-                {/* <FilteredDropdown
-                label="Product Area:"
-                context={this.props.context}
-                listname="Products"
-                field1={{
-                  name: "Title",
-                  value: this.state.proposalObject.ProductArea0,
-                }}
-              /> */}
-                <Dropdown
-                  label="Product Family Risk Classification:"
-                  options={productFamRiskClass}
-                  id="ddl_SubProduct"
-                  // defaultSelectedKey="0"
-                  selectedKey={this.state.SubProduct}
-                  onChange={this._onChange}
-                />
-              </Stack>
-            </Stack>
-            <TextField
-              label="Executive Summary:"
-              multiline
-              rows={5}
-              value={this.state.ExecutiveSummary}
-              id="txt_ExecutiveSummary"
-              required
-              onChange={this._onChangeText}
-            />
-            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-              <Stack {...columnProps}>
-                <TextField
-                  label="What is new for this Proposal?"
-                  multiline
-                  rows={3}
-                  value={this.state.NewForProposal}
-                  onChange={this._onChangeText}
-                  id="txt_NewForProposal"
-                />
-                <TextField
-                  label="Link to Existing Proposal:"
-                  multiline
-                  rows={3}
-                  value={this.state.LinkToExistingProposal}
-                  onChange={this._onChangeText}
-                  id="txt_LinkToExistingProposal"
-                />
-              </Stack>
-              <Stack {...columnProps}>
-                <TextField
-                  label="Is there a specific transaction in the pipeline?"
-                  multiline
-                  rows={3}
-                  value={this.state.TransactionInPipeline}
-                  onChange={this._onChangeText}
-                  id="txt_TransactionInPipeline"
-                  required
-                />
-              </Stack>
-            </Stack>
-            <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-              <Stack {...columnProps}>
-                {/* <TextField
-                label="Is the structure of the new product/transaction in any way influenced by
-                          the anticipated tax treatment of any party to the transaction?"
-                multiline
-                rows={3}
-                value={this.state.proposalObject.TaxTreatment}
-              /> */}
-                <TextField
-                  label="Are there any Reputational and/or Conduct Risk issues which arise from entering into
-                          this new product or amended product/services? Please provide a rationale for your answer"
-                  multiline
-                  value={this.state.ConductRiskIssuesComments}
-                  rows={3}
-                  onChange={this._onChangeText}
-                  id="txt_ConductRiskIssuesComments"
-                />
-              </Stack>
-              <Stack {...columnProps}>
-                {/* <TextField
-                label="Does this NAPA constitute issuing a line of credit/an extension of credit of any type to the client?"
-                multiline
-                rows={3}
-                value={this.state.proposalObject.LineOfCredit}
-              /> */}
-                <TextField
-                  label="What do you consider to be the Principal Risks associated with this proposal?"
-                  multiline
-                  rows={3}
-                  value={this.state.PrincipalRisks}
-                  onChange={this._onChangeText}
-                  id="txt_PrincipalRisks"
-                />
-              </Stack>
-            </Stack>
-            <HeaderInfo
-              title="Business Hierarchy"
-              description="Provide the following country information"
-            />
-            <Stack horizontal styles={stackStyles} tokens={stackTokens}>
-              <Stack {...columnProps}>
-                <Dropdown
-                  placeholder="Select options"
-                  label="Infrastructure Support Country:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ IFCountry: [o.text] });
-                  }}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  selectedKey={this.state.IFCountry}
-                  id="ddl_IFCountry"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Target Client Location:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ ClientLocation: [o.text] });
-                  }}
-                  selectedKey={this.state.ClientLocation}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  id="ddl_ClientLocation"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Country of Product Offering:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ ProductOfferingCountry: [o.text] });
-                  }}
-                  selectedKey={this.state.ProductOfferingCountry}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  id="ddl_ProductOfferingCountry"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Booking Location:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ BookingLocation: [o.text] });
-                  }}
-                  selectedKey={this.state.BookingLocation}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  id="ddl_BookingLocation"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Trader Location:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ TraderLocation: [o.text] });
-                  }}
-                  selectedKey={this.state.TraderLocation}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  id="ddl_TraderLocation"
-                />
-              </Stack>
-              <Stack {...columnProps}>
-                <Dropdown
-                  placeholder="Select options"
-                  label="Sales/Coverage Team Location:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ SalesTeamLocation: [o.text] });
-                  }}
-                  selectedKey={this.state.SalesTeamLocation}
-                  options={this.state.shortCountries}
-                  styles={dropdownStyles}
-                  id="ddl_SalesTeamLocation"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Target Client Sector:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ ClientSector: [o.text] });
-                  }}
-                  selectedKey={this.state.ClientSector}
-                  options={this.state.clientSectors}
-                  styles={dropdownStyles}
-                  id="ddl_ClientSector"
-                  required
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Booking/Applicable Currencies:"
-                  // selectedKeys={selectedKeys}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ BookingCurrencies: [o.text] });
-                  }}
-                  selectedKey={this.state.BookingCurrencies}
-                  id="ddl_BookingCurrencies"
-                  options={this.state.bookingCurrencies}
-                  styles={dropdownStyles}
-                  required
-                />
-                <Dropdown
-                  placeholder="Select option"
-                  label="Nature of Trade Activity:"
-                  // selectedKeys={selectedKeys}
-                  selectedKey={this.state.NatureOfTrade}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  id="ddl_NatureOfTrade"
-                  onChange={this._onChange}
-                  options={this.state.tradeActivities}
-                  styles={dropdownStyles}
-                />
-                <Dropdown
-                  placeholder="Select options"
-                  label="Booking Legal Entity:"
-                  selectedKey={this.state.BookingEntity}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChange={(e, o, i) => {
-                    this.setState({ BookingEntity: [o.text] });
-                  }}
-                  id="ddl_BookingEntity"
-                  options={this.state.legalEntities}
-                  styles={dropdownStyles}
-                  required
-                />
-              </Stack>
-            </Stack>
-            <Separator />
-            <Toggle
-              label="Is this a joint venture divisions or business area?"
-              // defaultChecked
-              onText="Yes"
-              offText="No"
-              onChange={this._onChangeToggle}
-              role="checkbox"
-              checked={this.state.JointVenture}
-              id="tgl_JointVenture"
-            />
-            <Separator />
-            {this.state.submitionStatus === "Ok" && <SuccessExample />}
-            {this.state.errorMessage.length > 0 &&
-              this.state.errorMessage.map((msg) => (
-                <MessageBar
-                  messageBarType={MessageBarType.error}
-                  isMultiline={false}
-                  dismissButtonAriaLabel="Close"
-                >
-                  {msg}
-                </MessageBar>
-              ))}
-            <Stack horizontal tokens={stackTokens}>
-              <DefaultButton
-                text="Cancel"
-                onClick={this._cancelProposal}
-                allowDisabledFocus
-                className={styles.buttonsGroupInput}
-              />
-              <PrimaryButton
-                text="Submit for NPS Determination"
-                onClick={this._saveApplicationProposal}
-                allowDisabledFocus
-                className={styles.buttonsGroupInput}
-              />
-              <PrimaryButton
-                text="Save as Draft"
-                onClick={this._saveApplicationProposal}
-                allowDisabledFocus
-                className={styles.buttonsGroupInput}
-              />
-            </Stack>
-          </Stack>
-        )}
-        {this.state.Status !== "Enquiry" && (
-          <NPSDetermination
-            teamAssessment={this.state.NapaTeamAssessment}
-            productFamily={this.state.ProductFamily}
-            teamAssesmentReason={this.state.NapaTeamAssReason}
-            teamCoordinators={null}
-            productFamilyRiskClassification={
-              this.state.ProductFamilyRiskClassification
-            }
-            resetEnquiryComment={this.state.ResetToEnqComment}
-            title={this.state.Title}
+        <Stack horizontal tokens={{ childrenGap: 5 }}>
+          {/* <div className={styles.menuItem}>Enquiery</div> */}
+          <MenuIcon
+            iconName="Headset"
+            stageName={this.state.selectedSection}
+            activated={false}
+            menuClickHandler={this.menuClicked}
             proposalStatus={this.state.Status}
-            proposalId={this.state.ID}
-            onDdlChange={this._onChange}
-            context={this.props.context}
-            getPeoplePickerItems={this._getPeoplePickerItems}
-            nAPATeamCoordinators={this.state.NAPATeamCoordinatorsId}
-            onChangeText={this._onChangeText}
-            teamAssesmentReasonOptions={this.state.TeamAssesmentReasonOptions}
-            productFamilyOptions={this.state.ProductFamilyOptions}
-            approvalCapacity={this.state.ApprovalCapacity}
-            validateForm={this._validateForm}
-            napaProposalsListname={proposalObj.napaProposalsListname}
+            ApprovedItems={this.state.ApprovedItems}
+          />
+          {(this.state.selectedSection === "Enquiry" ||
+            this.state.Status === "") && (
+            <Enquiry
+              allCountries={this.state.allCountries}
+              applicationCompletedBy={this.state.applicationCompletedBy}
+              bookingCurrencies={this.state.bookingCurrencies}
+              businessAreas={this.state.businessAreas}
+              buttonClickedDisabled={this.state.buttonClickedDisabled}
+              BookingCurrencies={this.state.BookingCurrencies}
+              // BookingEntity={this.state.BookingEntity}
+              BookingLocation={this.state.BookingLocation}
+              BusinessArea={this.state.BusinessArea}
+              cancelProposal={this._cancelProposal}
+              clientSectors={this.state.clientSectors}
+              ClientSector={this.state.ClientSector}
+              ClientLocation={this.state.ClientLocation}
+              Country0={this.state.Country0}
+              companies={this.state.companies}
+              Company={this.state.Company}
+              ConductRiskIssuesComments={this.state.ConductRiskIssuesComments}
+              context={this.props.context}
+              distributionChannels={this.state.distributionChannels}
+              ExecutiveSummary={this.state.ExecutiveSummary}
+              errorMessage={this.state.errorMessage}
+              getPeoplePickerItems={this._getPeoplePickerItems}
+              IFCountry={this.state.IFCountry}
+              ID={this.state.ID}
+              JointVenture={this.state.JointVenture}
+              legalEntities={this.state.legalEntities}
+              LinkToExistingProposal={this.state.LinkToExistingProposal}
+              LineOfCredit={this.state.LineOfCredit}
+              NewForProposal={this.state.NewForProposal}
+              onChangeText={this._onChangeText}
+              onFormatDate={this._onFormatDate}
+              onChange={this._onChange}
+              onChangeToggle={this._onChangeToggle}
+              onFilteredDropdownChange={this._onFilteredDropdownChange}
+              onSelectDate={this._onSelectDate}
+              PrincipalRisks={this.state.PrincipalRisks}
+              productAreas={this.state.productAreas}
+              ProductArea0={this.state.ProductArea0}
+              ProductOfferingCountry={this.state.ProductOfferingCountry}
+              ProductFamilyOptions={this.state.ProductFamilyOptions}
+              productFamRiskClass={productFamRiskClass}
+              Region={this.state.Region}
+              SalesTeamLocation={this.state.SalesTeamLocation}
+              saveApplicationEnquiry={this._saveApplicationEnquiry}
+              selectedSection={this.state.selectedSection}
+              setParentState={this.updateState}
+              shortCountries={this.state.shortCountries}
+              sponser={this.state.sponser}
+              subProducts={this.state.subProducts}
+              submitionStatus={this.state.submitionStatus}
+              Status={this.state.Status}
+              SubProduct={this.state.SubProduct}
+              targetCompletionDate={this.state.targetCompletionDate}
+              TeamAssesmentReasonOptions={this.state.TeamAssesmentReasonOptions}
+              Title={this.state.Title}
+              tradeActivities={this.state.tradeActivities}
+              tradingBookOwner={this.state.tradingBookOwner}
+              users={this.state.users}
+              workstreamCoordinator={this.state.workstreamCoordinator}
+            />
+          )}
+          {this.state.selectedSection === "Proposal" && (
+            <Proposal
+              teamAssessment={this.state.NapaTeamAssessment} // Insurance BU PRC Classification (NAPA Team Assessment)
+              productFamily={this.state.BusinessArea} // Product Family
+              teamAssesmentReason={this.state.NapaTeamAssReason} // Insurance BU PRU Outcome  (NAPA Team Assessment Reason)
+              teamCoordinators={this.state.NAPATeamCoordinatorsId} // Product Governance Team Coordinator
+              nAPATeamCoordinators={this.state.nAPATeamCoordinators}
+              existingFamilyOrNewFamily={this.state.ExistingFamily} // Existing family or new family
+              buPrcDate={this.state.bUPRCDate} // BU PRC Date
+              approvalCapacity={this.state.ApprovalCapacity} // Approval Capacity
+              actionsRaisedByBUPRC={this.state.ActionsRasedByBUPRC} // Actions/ conditions/ commets raised by BU PRC
+              infraApprovedByBuPrc={this.state.InfraAreaApprovedByBUPRCId} // Infrustructures area approved by BU PRC
+              infraAreaApprovedByBUPRC={this.state.infraAreaApprovedByBUPRC}
+              productFamilyRiskClassification={this.state.SubProduct}
+              resetEnquiryComment={this.state.ResetToEnqComment}
+              title={this.state.Title}
+              proposalStatus={this.state.Status}
+              proposalId={this.state.ID}
+              onDdlChange={this._onChange}
+              context={this.props.context}
+              getPeoplePickerItems={this._getPeoplePickerItems}
+              // nAPATeamCoordinators={this.state.NAPATeamCoordinatorsId}
+              onChangeText={this._onChangeText}
+              teamAssesmentReasonOptions={this.state.TeamAssesmentReasonOptions}
+              productFamilyOptions={this.state.businessAreas}
+              productRiskFamilyOptions={productFamRiskClass}
+              // productFamilyOptions={this.state.ProductFamilyOptions} productFamRiskClass
+              validateForm={this._validateForm}
+              napaProposalsListname={proposalObj.napaProposalsListname}
+              getItemsFilter={this._getListitemsFilter}
+              saveProposal={this._saveApplicationProposal}
+              cancelProposal={this._cancelProposal}
+              onFormatDate={this._onFormatDate}
+              onSelectDate={this._onSelectDate}
+              setParentState={this.updateState}
+              buttonDisabled={this.state.buttonClickedDisabled}
+              Status={this.state.Status}
+            />
+          )}
+          {this.state.selectedSection === "Pipeline" && (
+            <Pipeline
+              title={this.state.Title}
+              buttonDisabled={this.state.buttonClickedDisabled}
+              cancelProposal={this._cancelProposal}
+              proposalId={this.state.ID}
+              proposalStatus={this.state.Status}
+              resetToProposal={this.state.ResetToNPSDComment}
+              savePipeline={this._savePipeline}
+              siteUrl={this.props.context.pageContext.site.absoluteUrl}
+              onChangeText={this._onChangeText}
+              Status={this.state.Status}
+            />
+          )}
+          {this.state.selectedSection === "NPS Pipeline Review" && (
+            <NPSPipelineReview
+              title={this.state.Title}
+              buttonDisabled={this.state.buttonClickedDisabled}
+              cancelProposal={this._cancelProposal}
+              proposalId={this.state.ID}
+              proposalStatus={this.state.Status}
+              // resetToProposal={this.state.ResetToNPSDComment}
+              resetToPipeline={this.state.ResetPipelineComment}
+              savePipelineReview={this._savePipelineReview}
+              siteUrl={this.props.context.pageContext.site.absoluteUrl}
+              onChangeText={this._onChangeText}
+              RiskRanking={this.state.RiskRanking}
+              briefingDate={null}
+              BusinessCaseApprovalFrom={this.state.BusinessCaseApprovalFrom}
+              context={this.props.context}
+              getPeoplePickerItems={this._getPeoplePickerItems}
+              onChangeDropdown={this._onChange}
+              onFormatDate={this._onFormatDate}
+              onSelectDate={this._onSelectDate}
+              riskRankingOptions={productFamRiskClass}
+              setParentState={this.updateState}
+              // targetSubmissionByBusiness={null}
+              BusinessCaseApprovalComment={
+                this.state.BusinessCaseApprovalComment
+              }
+              addAttachments={this._addAttachments}
+              LegalReviewer={this.state.LegalReviewer}
+              ITReviewer={this.state.ITReviewer}
+              FinancialCrimeReviewer={this.state.FinancialCrimeReviewer}
+              TaxReviewer={this.state.TaxReviewer}
+              FraudRiskReviewer={this.state.FraudRiskReviewer}
+              ComplianceReviwer={this.state.ComplianceReviwer}
+              OperationsReviewer={this.state.OperationsReviewer}
+              CRMReviewer={this.state.CRMReviewer}
+              CreditRiskReviwer={this.state.CreditRiskReviwer}
+              MarketRiskReviewer={this.state.MarketRiskReviewer}
+              ProductControlReviewer={this.state.ProductControlReviewer}
+              RegulatoryReportingReviewer={
+                this.state.RegulatoryReportingReviewer
+              }
+              TreasuryReviewer={this.state.TreasuryReviewer}
+              TreasuryRiskReviewer={this.state.TreasuryRiskReviewer}
+              IRMReviewer={this.state.IRMReviewer}
+              GroupResilienceReviewer={this.state.GroupResilienceReviewer}
+              FinancialReportingReviewer={this.state.FinancialReportingReviewer}
+              ConductRiskReviewer={this.state.ConductRiskReviewer}
+              ReinsuranceReviewer={this.state.ReinsuranceReviewer}
+              CustomerExperienceReviewer={this.state.CustomerExperienceReviewer}
+              DistributionReviewer={this.state.DistributionReviewer}
+              businessCaseApprovalDate={this.state.businessCaseApprovalDate}
+              targetBusinessGoLive={this.state.targetBusinessGoLive}
+              nAPABriefingDate={this.state.nAPABriefingDate}
+              targetSubmissionByBusiness={this.state.targetSubmissionByBusiness}
+              Status={this.state.Status}
+            />
+          )}
+          {(this.state.selectedSection === "CRO" ||
+            this.state.selectedSection === "Legal Risk" ||
+            this.state.selectedSection === "Financial Crime" ||
+            this.state.selectedSection === "Data Privacy" ||
+            this.state.selectedSection === "Fraud Risk" ||
+            this.state.selectedSection === "Tax Risk" ||
+            this.state.selectedSection ===
+              "Information Security Risk and Cyber Risk" ||
+            this.state.selectedSection === "Finance" ||
+            this.state.selectedSection ===
+              "Head of Actuarial and Statutory Actuary" ||
+            this.state.selectedSection === "Marketing and Communications" ||
+            this.state.selectedSection === "Financial & Insurance Risk" ||
+            this.state.selectedSection === "Compliance" ||
+            this.state.selectedSection === "Operations" ||
+            this.state.selectedSection === "Supplier Risk" ||
+            this.state.selectedSection ===
+              "Financial Reporting/ Control Risk" ||
+            this.state.selectedSection === "Technology Risk" ||
+            this.state.selectedSection === "Business Continuity Risk" ||
+            this.state.selectedSection === "RBB CVM" ||
+            this.state.selectedSection === "Valuations" ||
+            this.state.selectedSection === "Reinsurance" ||
+            this.state.selectedSection === "Customer Experience" ||
+            this.state.selectedSection === "Distribution" ||
+            this.state.selectedSection === "CRO" ||
+            this.state.selectedSection === "CRO" ||
+            this.state.selectedSection === "CRO" ||
+            this.state.selectedSection === "CRO" ||
+            this.state.selectedSection === "Infrastructure Review") && (
+            // console.log(this.state.selectedSection) &&
+            <InfrastructureReview
+              context={this.props.context}
+              DeleteFromSP={this._DeleteFromSP}
+              title="title"
+              Title={this.state.Title}
+              ID={this.state.ID}
+              SelectedSection={this.state.selectedSection}
+              Status={this.state.Status}
+              saveOnSharePoint={this.submitToOtherSPList}
+              subtitle={this.state.selectedSection}
+              mainItem={this.state.proposalObject}
+              menuObject={menuObj}
+              NoOfApprovalsRequired={this.state.InfrastructureCount}
+              onChange={this._onChange}
+              onChangeText={this._onChangeText}
+            />
+          )}
+          {this.state.selectedSection === "Final NPS Review" && (
+            <FinalNPSReview
+              ActionsRaisedByExco={this.state.ActionsRaisedByExco}
+              BusinessExecutiveId={this.state.BIRORegionalHeadId}
+              BusinesExecutive={this.state.BIRORegionalHead}
+              BusinesExecutiveApprovalDate={
+                this.state.bIRORegionalHeadReviewDate
+              }
+              context={this.props.context}
+              ExcoPrcCommitteeComment={this.state.CROComment}
+              FinalRiskClassification={this.state.FinalRiskClassification}
+              getPeoplePickerItems={this._getPeoplePickerItems}
+              ID={this.state.ID}
+              InduranceExcoPrcDate={this.state.cROStatusDate}
+              InsuranceExcoPruOutcome={this.state.CROStatus}
+              IsPostImplementationRequired={
+                this.state.IsPostImplementationRequired
+              }
+              OperationalChecklistRequirement={
+                this.state.OperationalChecklistRequirement
+              }
+              onChange={this._onChange}
+              onChangeText={this._onChangeText}
+              onSelectDate={this._onSelectDate}
+              onFormatDate={this._onFormatDate}
+              PirComments={this.state.PIRComments}
+              PirDateCompleted={this.state.pIRDateCompleted}
+              PirLaunchDate={this.state.targetDueDate}
+              ResetFinalNPSComment={this.state.ResetFinalNPSComment}
+              ResetToInfrastructureReview={this._ResetToInfrastructureReview}
+              saveFinalNPSReview={this._saveFinalNPSReview}
+              SelectedSection={this.state.selectedSection}
+              setParentState={this.updateState}
+              Status={this.state.Status}
+              Title={this.state.Title}
+            />
+          )}
+          {(this.state.selectedSection === "Approval to Trade" ||
+            this.state.selectedSection === "Chair Approval") && (
+            <ApprovalToTrade
+              context={this.props.context}
+              errorMessage={this.state.errorMessage}
+              getPeoplePickerItems={this._getPeoplePickerItems}
+              ID={this.state.ID}
+              onChange={this._onChange}
+              onChangeText={this._onChangeText}
+              ProductGovernanceCustodians={
+                this.state.ProductGovernanceCustodians
+              }
+              ResetFinalNPSComment={this.state.ResetFinalNPSComment}
+              saveApprovalToTrade={this._saveApprovalToTrade}
+              SelectedSection={this.state.selectedSection}
+              setParentState={this.updateState}
+              Status={this.state.Status}
+              Title={this.state.Title}
+            />
+          )}
+          {this.state.selectedSection === "Approval Summary" && (
+            <ApprovalSummary
+              context={this.props.context}
+              ID={this.state.ID}
+              Status={this.state.Status}
+              Title={this.state.Title}
+              ApprovedItems={this.state.ApprovedItems}
+            />
+          )}
+          {this.state.selectedSection === "Other Status" && (
+            <OtherStatus
+              Approval_x0020_withdrawn_x0020_d={
+                this.state.Approval_x0020_withdrawn_x0020_d
+              }
+              Status="Other Status"
+              ID={this.state.ID}
+              Title={this.state.Title}
+              context={this.props.context}
+              siteUrl={`${this.props.context.pageContext.site.absoluteUrl}`}
+              OtherStatuses={this.state.OtherStatuses}
+              OtherStatusComments={this.state.OtherStatusComments}
+              OtherStatusDate={this.state.Approval_x0020_withdrawn_x0020_d}
+              onFormatDate={this._onFormatDate}
+              onChangeText={this._onChangeText}
+              onChange={this._onChange}
+              ProposalDateWithdrawal={this.state.ProposalDateWithdrawal}
+            />
+          )}
+        </Stack>
+        {this.state.ID > 0 && (
+          <SupportingDocuments
+            addAttachments={this._addAttachments}
+            attachmentStatus={this.state.attachmentAdded}
+            supportingDocs={this.state.SupportingDocs}
+            siteUrl={`${this.props.context.pageContext.site.absoluteUrl}`}
+            id={this.state.ID}
+            isAttachmentAdded={this.state.isAttachmentAdded}
           />
         )}
       </div>

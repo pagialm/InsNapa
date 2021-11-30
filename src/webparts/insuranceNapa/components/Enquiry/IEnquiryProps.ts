@@ -1,4 +1,24 @@
-export interface IProposal {
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+import { IDropdownOption } from "office-ui-fabric-react";
+
+export interface IEnquiryProps {
+  allCountries: IDropdownOption[];
+  shortCountries: IDropdownOption[];
+  clientSectors: IDropdownOption[];
+  bookingCurrencies: IDropdownOption[];
+  tradeActivities: IDropdownOption[];
+  legalEntities: IDropdownOption[];
+  users: [];
+  companies: IDropdownOption[];
+  businessAreas: IDropdownOption[];
+  productAreas: IDropdownOption[];
+  subProducts: IDropdownOption[];
+
+  applicationCompletedBy: string;
+  sponser: string[];
+  tradingBookOwner: string[];
+  workstreamCoordinator: string[];
+  targetCompletionDate: Date;
   ID?: number;
   Title?: string; // Proposal Name
   TargetCompletionDate?: Date | string; // Target Launch Date
@@ -29,6 +49,35 @@ export interface IProposal {
   BookingLocation?: string[]; // Booking Location
   NatureOfTrade?: string; // Nature of Trade Activity
   TraderLocation?: string[]; // Trader Location
-  BookingEntity?: string[]; // Booking Legal Entity
+  // BookingEntity?: string[]; // Booking Legal Entity
   JointVenture?: boolean; //Is this a joint venture divisions or business area?
+  Status: string;
+  distributionChannels: IDropdownOption[];
+  submitionStatus: string;
+  errorMessage: string[];
+  NAPATeamCoordinatorsId?: any; // NAPA Team Coordinators
+  NapaTeamAssessment?: string; // NAPA Team Assessment
+  NapaTeamAssReason?: string; // NAPA Team Assessment Reason
+  ProductFamily?: string; // Product Family
+  ProductFamilyRiskClassification?: string; // Product Family Risk Classification
+
+  ResetToEnqComment?: string; // Reset Enquiry Comment
+  TeamAssesmentReasonOptions: IDropdownOption[];
+  ProductFamilyOptions: IDropdownOption[];
+  selectedSection: string;
+  BUPRCDate?: Date; // BU PRC Date
+
+  buttonClickedDisabled: boolean;
+  onChangeText: any;
+  context: WebPartContext;
+  getPeoplePickerItems: any;
+  onSelectDate: any;
+  onFormatDate: any;
+  onChange: any;
+  onFilteredDropdownChange: any;
+  cancelProposal: any;
+  saveApplicationEnquiry: any;
+  productFamRiskClass: IDropdownOption[];
+  setParentState: any;
+  onChangeToggle: any;
 }

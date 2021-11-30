@@ -1,6 +1,6 @@
 import { IStackStyles, Stack } from "office-ui-fabric-react";
 import * as React from "react";
-import styles from "./InsuranceNapa.module.scss";
+import styles from "../InsuranceNapa.module.scss";
 
 const stackTokens = { childrenGap: 50 };
 const stackStyles: Partial<IStackStyles> = { root: { width: 784 } };
@@ -15,10 +15,7 @@ export interface IHeaders {
   proposalStatus: string;
   title: string;
 }
-export default class HeadersDecor extends React.Component<
-  IHeaders,
-  IHeadersState
-> {
+class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
   constructor(props: IHeaders, state: IHeadersState) {
     super(props);
     this.state = {
@@ -44,4 +41,4 @@ export default class HeadersDecor extends React.Component<
     );
   }
 }
-// export default Headers;
+export default HeadersDecor;

@@ -1,33 +1,16 @@
 import * as React from "react";
 import { INPSDeterminationProps } from "./INPSDeterminationProps";
-import Headers from "../Headers";
-import HeaderInfo from "../HeaderInfo";
+import Headers from "../Common/Headers";
+import HeaderInfo from "../Common/HeaderInfo";
 import { IStackStyles, Stack } from "office-ui-fabric-react";
 import {
   TextField,
-  Checkbox,
-  ICheckboxProps,
   Dropdown,
-  DropdownMenuItemType,
-  IDropdownStyles,
-  IDropdownOption,
-  DatePicker,
   IStackProps,
   autobind,
-  Toggle,
   Separator,
   DefaultButton,
   PrimaryButton,
-  ITextFieldProps,
-  getTheme,
-  FontWeights,
-  ITheme,
-  Label,
-  Button,
-  BaseButton,
-  MessageBar,
-  MessageBarType,
-  MessageBarButton,
 } from "office-ui-fabric-react/lib";
 import {
   SPHttpClient,
@@ -53,7 +36,7 @@ export default class NPSDetermination extends React.Component<INPSDeterminationP
     debugger;
     // console.log(this);
     const buttonClicked: string = e.target.innerText;
-    let statusText = "NPS Determination";
+    let statusText = "Proposal";
     if (buttonClicked === "Reset to Enquiry") statusText = "Enquiry";
     if (buttonClicked === "Submit for Pipeline") statusText = "Pipeline";
     const _isFormValid =
@@ -160,7 +143,7 @@ export default class NPSDetermination extends React.Component<INPSDeterminationP
         <Stack>
           <Headers
             proposalId={this.props.proposalId}
-            selectedSection="NPS Determination"
+            selectedSection="Proposal"
             title={this.props.title}
             proposalStatus={this.props.proposalStatus}
           />
