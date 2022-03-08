@@ -1,0 +1,58 @@
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+import { IDropdownOption } from "office-ui-fabric-react";
+
+export interface INPSPipelineReviewProps {
+  onFormatDate: any;
+  targetSubmissionByBusiness: Date;
+  onSelectDate: any;
+  briefingDate: Date;
+  businessCaseApprovalDate: Date;
+  setParentState: any;
+  getPeoplePickerItems: any;
+  BusinessCaseApprovalFrom: string;
+  context: WebPartContext;
+  onChangeDropdown: any;
+  RiskRanking: string;
+  title: string;
+  proposalId: number;
+  proposalStatus: string;
+  siteUrl: string;
+  onChangeText: any;
+  cancelProposal: any;
+  savePipelineReview: any;
+  buttonDisabled: boolean;
+  resetToPipeline: string;
+  riskRankingOptions: IDropdownOption[];
+  BusinessCaseApprovalComment: string;
+  addAttachments: any;
+  LegalReviewer: string[];
+  ITReviewer: string[];
+  FinancialCrimeReviewer: string[];
+  TaxReviewer: string[];
+  FraudRiskReviewer: string[];
+  ComplianceReviwer: string[];
+  OperationsReviewer: string[];
+  CRMReviewer: string[];
+  CreditRiskReviwer: string[];
+  MarketRiskReviewer: string[];
+  ProductControlReviewer: string[];
+  RegulatoryReportingReviewer: string[];
+  TreasuryReviewer: string[];
+  TreasuryRiskReviewer: string[];
+  IRMReviewer: string[];
+  GroupResilienceReviewer: string[];
+  FinancialReportingReviewer: string[];
+  FinanceReviewer:string[];  
+  ConductRiskReviewer: string[];
+  ReinsuranceReviewer: string[];
+  CustomerExperienceReviewer: string[];
+  DistributionReviewer: string[];
+  targetBusinessGoLive: Date;
+  nAPABriefingDate: Date;
+  // targetSubmissionByBusiness: Date;
+  Status: string;
+  EditMode?:boolean;
+  errorMessage?:string[];
+  isAttachmentAdded?:boolean;
+  
+}
