@@ -16,7 +16,7 @@ const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
 
 const Pipeline = (props: IPipelineProps) => {
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       <Headers
         proposalId={props.proposalId}
         selectedSection="Pipeline"
@@ -108,7 +108,7 @@ const Pipeline = (props: IPipelineProps) => {
         {props.EditMode && props.Status === "Pipeline" && (
           <DefaultButton
             onClick={props.savePipeline}
-            text="Reset to Proposal"
+            text="Reset to NPS Determination"
             disabled={props.buttonDisabled}
           />
         )}

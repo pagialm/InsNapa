@@ -23,4 +23,5 @@ export interface IApprovals {
   currentInfraArea?:string;
   canApprove?:boolean;
   CheckApprovals?:any;
+  ValidateForm?:any;
 }

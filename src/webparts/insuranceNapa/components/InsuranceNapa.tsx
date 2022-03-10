@@ -253,7 +253,7 @@ export default class InsuranceNapa extends React.Component<
     if (this.props.itemId && this.props.itemId > 0) {
       //Get Approved List items
       
-      const approvedItemsFilterStr: string = `Proposal_ID eq '${this.props.itemId}'&$select=Proposal_ID,NAPA_Infra,Author/Title,Created&$expand=Author/Title`;
+      const approvedItemsFilterStr: string = `Proposal_ID eq '${this.props.itemId}'&$select=ID,Proposal_ID,NAPA_Infra,Author/Title,Created&$expand=Author/Title`;
       if (this.state.Status !== mainStatuses[0] &&
           this.state.Status !== mainStatuses[1] &&
           this.state.Status !== mainStatuses[2] &&
@@ -694,6 +694,11 @@ export default class InsuranceNapa extends React.Component<
     }    
    
   }
+  /**
+   * Textboxes and Textarea controls function to update state.
+   * @param ev Event trigger object
+   * @param newValue Value from a textbox
+   */
   @autobind
   private _onChangeText(
     ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -705,12 +710,19 @@ export default class InsuranceNapa extends React.Component<
     el[element.id.split("_")[1]] = newValue;
     this.setState(el);
   }
+  /**
+   * Validate if all required fields were filled.
+   * @param preSelector Pre selector or container to validate within, if blank then the whole page is validated.
+   * @returns 
+   */
   @autobind
-  private _validateForm(): boolean {
+  private _validateForm(preSelector?:string): boolean {
     let isValid = true;
+    const requiredSelector = preSelector ? `${preSelector} [required]` : "[required]";
+    const dropElementsSelector = preSelector ? `${preSelector} [aria-required]` : "[aria-required]"
     debugger;
-    const elements = document.querySelectorAll("[required]");
-    const dropElements = document.querySelectorAll("[aria-required]");
+    const elements = document.querySelectorAll(requiredSelector);
+    const dropElements = document.querySelectorAll(dropElementsSelector);
     let errMsg = "";
     const errMsgs = [];
     elements.forEach((el: HTMLInputElement | HTMLTextAreaElement) => {
@@ -741,40 +753,6 @@ export default class InsuranceNapa extends React.Component<
 
     return isValid;
   }
-  @autobind
-  private _saveApplicationProposal(e): void {
-    debugger;
-    this.setState({ buttonClickedDisabled: true });
-    const buttonClicked: string = e.target.innerText;
-    let statusText = "Pipeline";
-    if (buttonClicked === "Save") statusText = "Proposal";
-    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
-    const proposal = {};
-    proposal["Status"] = statusText; // Reset to Enquiry
-    if (buttonClicked === "Reset to Enquiry") {
-      proposal["ResetToEnqComment"] = this.state.ResetToEnqComment; // Reset to Enquiry
-      proposal["Status"] = "Enquiry"; // Reset to Enquiry
-    } else {
-      proposal["NapaTeamAssessment"] = this.state.NapaTeamAssessment; // Insurance BU PRC Classification
-      proposal["NapaTeamAssReason"] = this.state.NapaTeamAssReason; // Insurance BU PRU Outcome
-      proposal["BUPRCDate"] = this.state.BUPRCDate; // BU PRC Date
-      proposal["NAPATeamCoordinatorsId"] = this.state.NAPATeamCoordinatorsId
-        ? this.state.NAPATeamCoordinatorsId
-        : []; // Product Governance Team Coordinator
-      proposal["ProductFamily"] = this.state.ProductFamily; // Product Family
-      proposal["ProductFamilyRiskClassification"] =
-        this.state.ProductFamilyRiskClassification; // Product Family Risk Classification
-      proposal["ExistingFamily"] = this.state.ExistingFamily; // Existing family or new family
-      proposal["ApprovalCapacity"] = this.state.ApprovalCapacity; // Approval Capacity
-      proposal["ActionsRasedByBUPRC"] = this.state.ActionsRasedByBUPRC; // Actions/ conditions/ commets raised by BU PRC
-      proposal["InfraAreaApprovedByBUPRCId"] = this.state
-        .InfraAreaApprovedByBUPRCId
-        ? this.state.InfraAreaApprovedByBUPRCId
-        : []; // Infrustructures area approved by BU
-    }
-    if (_isFormValid) this.submitToSP(proposal);
-    else this.setState({ buttonClickedDisabled: false });
-  }
   /**
    * Save Enquiry stage to Proposal if Submit proposal was clicked.
    * @param e Event trigger
@@ -784,8 +762,8 @@ export default class InsuranceNapa extends React.Component<
     debugger;
     this.setState({ buttonClickedDisabled: true });
     const buttonClicked: string = e.target.innerText;
-    let statusText = "Proposal";
-    if (buttonClicked === "Save as Draft") statusText = "Enquiry";
+    let statusText = mainStatuses[1];
+    if (buttonClicked === "Save as Draft") statusText = mainStatuses[0];
     const _isFormValid =
       buttonClicked === "Save as Draft" ? true : this._validateForm();
     const proposal = {};
@@ -847,6 +825,233 @@ export default class InsuranceNapa extends React.Component<
     if (_isFormValid) this.submitToSP(proposal);
     else this.setState({ buttonClickedDisabled: false });
   }
+  /**
+   * Save Proposal to NPS Determination
+   * @param e Button clicked event.
+   */
+  @autobind
+  private _saveApplicationProposal(e): void {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = mainStatuses[2];
+    if (buttonClicked === "Save") statusText = mainStatuses[1];
+    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+    const proposal = {};
+    proposal["Status"] = statusText; // Reset to Enquiry
+    if (buttonClicked === "Reset to Enquiry") {
+      proposal["ResetToEnqComment"] = this.state.ResetToEnqComment; // Reset to Enquiry
+      proposal["Status"] = mainStatuses[0]; // Reset to Enquiry
+    } else {
+      proposal["NapaTeamAssessment"] = this.state.NapaTeamAssessment; // Insurance BU PRC Classification
+      proposal["NapaTeamAssReason"] = this.state.NapaTeamAssReason; // Insurance BU PRU Outcome
+      proposal["BUPRCDate"] = this.state.BUPRCDate; // BU PRC Date
+      proposal["NAPATeamCoordinatorsId"] = this.state.NAPATeamCoordinatorsId
+        ? this.state.NAPATeamCoordinatorsId
+        : []; // Product Governance Team Coordinator
+      proposal["ProductFamily"] = this.state.ProductFamily; // Product Family
+      proposal["ProductFamilyRiskClassification"] =
+        this.state.ProductFamilyRiskClassification; // Product Family Risk Classification
+      proposal["ExistingFamily"] = this.state.ExistingFamily; // Existing family or new family
+      proposal["ApprovalCapacity"] = this.state.ApprovalCapacity; // Approval Capacity
+      proposal["ActionsRasedByBUPRC"] = this.state.ActionsRasedByBUPRC; // Actions/ conditions/ commets raised by BU PRC
+      proposal["InfraAreaApprovedByBUPRCId"] = this.state
+        .InfraAreaApprovedByBUPRCId
+        ? this.state.InfraAreaApprovedByBUPRCId
+        : []; // Infrustructures area approved by BU
+    }
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  /**
+   * Save to Pipeline Review
+   * @param e Event trigger
+   */
+  @autobind
+  private _savePipeline(e): void {
+    debugger;
+    this.setState({ buttonClickedDisabled: true });
+    const buttonClicked: string = e.target.innerText;
+    let statusText = mainStatuses[3];
+    if (buttonClicked === "Save") statusText = mainStatuses[2];
+    if(buttonClicked === "Reset to NPS Determination") statusText = mainStatuses[1];
+    const _isFormValid = buttonClicked === "Save" || buttonClicked === "Reset to NPS Determination" ? true : this._validateForm();
+    const proposal = {};
+    if (statusText === mainStatuses[3])
+      this.setState({ ResetToNPSDComment: "N/A" });
+    proposal["ResetToNPSDComment"] = this.state.ResetToNPSDComment;
+    proposal["Status"] = statusText;
+
+    if (_isFormValid) this.submitToSP(proposal);
+    else this.setState({ buttonClickedDisabled: false });
+  }
+  /**
+   * Submit Proposal from Pipeline Review to Infrastructure Review.
+   * @param e Button that was clicked.
+   */
+   @autobind
+   private _savePipelineReview(e): void {
+     debugger;
+     this.setState({ buttonClickedDisabled: true });
+     const buttonClicked: string = e.target.innerText;
+     let statusText = buttonClicked === "Reset to Pipeline" ? mainStatuses[2] : mainStatuses[4];
+     if (buttonClicked === "Save") statusText = mainStatuses[3];
+     let _isFormValid = (buttonClicked === "Save" || buttonClicked === "Reset to Pipeline") ? true : this._validateForm();
+     _isFormValid = this.checkInfraReviwers();
+     const proposal = {};
+     if (statusText === mainStatuses[4])
+       this.setState({ ResetPipelineComment: "N/A" });
+     if(statusText !== mainStatuses[2]){
+       proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
+       proposal["Status"] = statusText;
+       proposal["LegalReviewerId"] = this.state.LegalReviewerId || [];
+       proposal["ComplianceReviwerId"] = this.state.ComplianceReviwerId || [];
+       proposal["ITReviewerId"] = this.state.ITReviewerId || [];
+       proposal["OperationsReviewerId"] = this.state.OperationsReviewerId || [];
+       proposal["CreditRiskReviwerId"] = this.state.CreditRiskReviwerId || [];
+       proposal["MarketRiskReviewerId"] = this.state.MarketRiskReviewerId || [];
+       proposal["TaxReviewerId"] = this.state.TaxReviewerId || [];
+       proposal["ProductControlReviewerId"] =
+         this.state.ProductControlReviewerId || [];
+       proposal["RegulatoryReportingReviewerId"] =
+         this.state.RegulatoryReportingReviewerId || [];
+       proposal["CRMReviewerId"] = this.state.CRMReviewerId || [];
+       proposal["TreasuryReviewerId"] = this.state.TreasuryReviewerId || [];
+       proposal["TreasuryRiskReviewerId"] =
+         this.state.TreasuryRiskReviewerId || [];
+       proposal["IRMReviewerId"] = this.state.IRMReviewerId || [];
+       proposal["GroupResilienceReviewerId"] =
+         this.state.GroupResilienceReviewerId || [];
+       proposal["FraudRiskReviewerId"] = this.state.FraudRiskReviewerId || [];
+       proposal["FinancialCrimeReviewerId"] =
+         this.state.FinancialCrimeReviewerId || [];
+       proposal["FinancialReportingReviewerId"] =
+         this.state.FinancialReportingReviewerId || [];
+       proposal["ConductRiskReviewerId"] = this.state.ConductRiskReviewerId || [];
+       proposal["FinanceReviewerId"] = this.state.FinanceReviewerId || [];
+       proposal["ReinsuranceReviewerId"] = this.state.ReinsuranceReviewerId || [];
+       proposal["CustomerExperienceReviewerId"] =
+         this.state.CustomerExperienceReviewerId || [];
+       proposal["DistributionReviewerId"] =
+         this.state.DistributionReviewerId || [];
+       proposal["RiskRanking"] = this.state.RiskRanking;
+       if(this.state.BusinessCaseApprovalFromId)
+         proposal["BusinessCaseApprovalFromId"] =
+           this.state.BusinessCaseApprovalFromId[0];
+       proposal["BusinessCaseApprovalDate"] = this.state.BusinessCaseApprovalDate;
+       proposal["BusinessCaseApprovalComment"] =
+         this.state.BusinessCaseApprovalComment;
+       proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
+       proposal["TargetSubmissionByBusiness"] =
+         this.state.TargetSubmissionByBusiness; //TargetBusinessGoLive
+       proposal["TargetBusinessGoLive"] = this.state.TargetBusinessGoLive; //TargetBusinessGoLive
+       proposal["NAPABriefingDate"] = this.state.NAPABriefingDate; //TargetBusinessGoLive
+       // proposal["NAPABriefingComments"] = this.state.NAPABriefingComments;//TargetBusinessGoLive
+       debugger;
+       const numberOfReviewers = this._countReviews(proposal);
+       proposal["InfrastructureCount"] = numberOfReviewers;
+     }
+     else{
+       proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
+       proposal["Status"] = statusText;
+     }
+ 
+     if (_isFormValid) this.submitToSP(proposal);
+     else this.setState({ buttonClickedDisabled: false });
+   }
+   /**
+    * Submit Proposal from Final NPS Review to Chair/Approval to Trade approval
+    * @param e Button that was clicked event.
+    */
+   @autobind
+    private _saveFinalNPSReview(e): void {
+      debugger;
+      this.setState({ buttonClickedDisabled: true });
+      const buttonClicked: string = e.target.innerText;
+      let statusText = mainStatuses[7];
+      if (buttonClicked === "Save") statusText = mainStatuses[5];
+      const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+      const proposal = {};
+      if (statusText === mainStatuses[7])
+        this.setState({ ResetFinalNPSComment: "N/A" });
+      proposal["ActionsRaisedByExco"] = this.state.ActionsRaisedByExco;
+      proposal["BIRORegionalHeadId"] = this.state.BIRORegionalHeadId;
+      proposal["BIRORegionalHeadReviewDate"] =
+        this.state.BIRORegionalHeadReviewDate;
+      proposal["CROComment"] = this.state.CROComment;
+      proposal["FinalRiskClassification"] = this.state.FinalRiskClassification;
+      proposal["CROStatusDate"] = this.state.CROStatusDate;
+      proposal["CROStatus"] = this.state.CROStatus;
+      proposal["IsPostImplementationRequired"] =
+        this.state.IsPostImplementationRequired;
+      proposal["OperationalChecklistRequirement"] =
+        this.state.OperationalChecklistRequirement;
+      proposal["PIRComments"] = this.state.PIRComments;
+      proposal["PIRDateCompleted"] = this.state.PIRDateCompleted;
+      proposal["TargetDueDate"] = this.state.TargetDueDate;
+      proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
+
+      proposal["Status"] = statusText;
+
+      if (_isFormValid) this.submitToSP(proposal);
+      else this.setState({ buttonClickedDisabled: false });
+    }
+    /**
+     * Reset Proposal to Infratstrucure Review for selected Infrastructure areas
+     * @param infraAreas Infrastructure areas to reset
+     */
+    @autobind
+    private _ResetToInfrastructureReview(infraAreas: []) {
+      console.log(infraAreas);
+      const proposal = {};
+      let newCounter = 0;
+      infraAreas.forEach((infraArea) => {
+        const strInternalName = Utility.GetMenuItemInternalName(infraArea);
+        const itemsToDelete = this.state.ApprovedItems.filter(itemToDelete => (itemToDelete["NAPA_Infra"] === strInternalName));
+        const itemToDelete = itemsToDelete.length > 0 ? itemsToDelete[0] : null;
+        if(itemToDelete){
+          this._DeleteFromSP(proposalObj.napaApprovalsListname, itemToDelete, (d)=> (console.log(d)));
+          newCounter++;
+          console.log(itemToDelete);
+        }
+        if((newCounter + 1) === infraAreas.length){
+          proposal["Status"] = mainStatuses[4];
+          proposal["InfrastructureApprovalCount"] =
+            this.state.InfrastructureApprovalCount - newCounter;
+          console.log(proposal);
+          this.submitToSP(proposal);
+        }
+        
+      });
+      
+    }
+    /**
+     * Save from Approval to trade to Approve to trade
+     * @param e Button clicked event
+     */
+    @autobind
+    private _saveApprovalToTrade(e) {
+      debugger;
+      this.setState({ buttonClickedDisabled: true });
+      const buttonClicked: string = e.target.innerText;
+      let statusText = mainStatuses[8];
+      if (buttonClicked === "Save") statusText = mainStatuses[7];
+      if (buttonClicked === "Reset to Final NPS Review")
+        statusText = mainStatuses[5];
+      const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+      const proposal = {};
+      if (statusText === mainStatuses[8])
+        this.setState({ ResetFinalNPSComment: "N/A" });
+      proposal["ATTChairId"] = this.state.ATTChairId;
+      proposal["ChairComments"] = this.state.ChairComments;
+      proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
+      proposal["Status"] = statusText;
+      console.log(proposal);
+      if (_isFormValid) this.submitToSP(proposal);
+      else {
+        this.setState({ buttonClickedDisabled: false });
+      }
+    }
   /**
    * Submit a Proposal to SharePoint NAPA Proposal list.
    * @param proposal Proposal JSON Object
@@ -1153,24 +1358,7 @@ export default class InsuranceNapa extends React.Component<
     } catch (error) {
       console.log("Error in GetFolderServerRelativeURL " + error);
     }
-  }
-  @autobind
-  private _savePipeline(e): void {
-    debugger;
-    this.setState({ buttonClickedDisabled: true });
-    const buttonClicked: string = e.target.innerText;
-    let statusText = "NPS Pipeline Review";
-    if (buttonClicked === "Save") statusText = "Pipeline";
-    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
-    const proposal = {};
-    if (statusText === "NPS Pipeline Review")
-      this.setState({ ResetToNPSDComment: "N/A" });
-    proposal["ResetToNPSDComment"] = this.state.ResetToNPSDComment;
-    proposal["Status"] = statusText;
-
-    if (_isFormValid) this.submitToSP(proposal);
-    else this.setState({ buttonClickedDisabled: false });
-  }
+  }  
   /**
    * Checks if Proposal contains at least one Reviewer from Pipeline review.
    * @returns True / False
@@ -1232,81 +1420,7 @@ export default class InsuranceNapa extends React.Component<
       this.setState({errorMessage:[errorMsg]});
     }
     return isValid;
-  }
-  /**
-   * Submit Proposal from Pipeline Review to Infrastructure Review.
-   * @param e Button that was clicked.
-   */
-  @autobind
-  private _savePipelineReview(e): void {
-    debugger;
-    this.setState({ buttonClickedDisabled: true });
-    const buttonClicked: string = e.target.innerText;
-    let statusText = buttonClicked === "Reset to Pipeline" ? "Pipeline" : "Infrastructure Review";
-    if (buttonClicked === "Save") statusText = "NPS Pipeline Review";
-    let _isFormValid = (buttonClicked === "Save" || buttonClicked === "Reset to Pipeline") ? true : this._validateForm();
-    _isFormValid = this.checkInfraReviwers();
-    const proposal = {};
-    if (statusText === "Infrastructure Review")
-      this.setState({ ResetPipelineComment: "N/A" });
-    if(statusText !== "Pipeline"){
-      proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
-      proposal["Status"] = statusText;
-      proposal["LegalReviewerId"] = this.state.LegalReviewerId || [];
-      proposal["ComplianceReviwerId"] = this.state.ComplianceReviwerId || [];
-      proposal["ITReviewerId"] = this.state.ITReviewerId || [];
-      proposal["OperationsReviewerId"] = this.state.OperationsReviewerId || [];
-      proposal["CreditRiskReviwerId"] = this.state.CreditRiskReviwerId || [];
-      proposal["MarketRiskReviewerId"] = this.state.MarketRiskReviewerId || [];
-      proposal["TaxReviewerId"] = this.state.TaxReviewerId || [];
-      proposal["ProductControlReviewerId"] =
-        this.state.ProductControlReviewerId || [];
-      proposal["RegulatoryReportingReviewerId"] =
-        this.state.RegulatoryReportingReviewerId || [];
-      proposal["CRMReviewerId"] = this.state.CRMReviewerId || [];
-      proposal["TreasuryReviewerId"] = this.state.TreasuryReviewerId || [];
-      proposal["TreasuryRiskReviewerId"] =
-        this.state.TreasuryRiskReviewerId || [];
-      proposal["IRMReviewerId"] = this.state.IRMReviewerId || [];
-      proposal["GroupResilienceReviewerId"] =
-        this.state.GroupResilienceReviewerId || [];
-      proposal["FraudRiskReviewerId"] = this.state.FraudRiskReviewerId || [];
-      proposal["FinancialCrimeReviewerId"] =
-        this.state.FinancialCrimeReviewerId || [];
-      proposal["FinancialReportingReviewerId"] =
-        this.state.FinancialReportingReviewerId || [];
-      proposal["ConductRiskReviewerId"] = this.state.ConductRiskReviewerId || [];
-      proposal["FinanceReviewerId"] = this.state.FinanceReviewerId || [];
-      proposal["ReinsuranceReviewerId"] = this.state.ReinsuranceReviewerId || [];
-      proposal["CustomerExperienceReviewerId"] =
-        this.state.CustomerExperienceReviewerId || [];
-      proposal["DistributionReviewerId"] =
-        this.state.DistributionReviewerId || [];
-      proposal["RiskRanking"] = this.state.RiskRanking;
-      if(this.state.BusinessCaseApprovalFromId)
-        proposal["BusinessCaseApprovalFromId"] =
-          this.state.BusinessCaseApprovalFromId[0];
-      proposal["BusinessCaseApprovalDate"] = this.state.BusinessCaseApprovalDate;
-      proposal["BusinessCaseApprovalComment"] =
-        this.state.BusinessCaseApprovalComment;
-      proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
-      proposal["TargetSubmissionByBusiness"] =
-        this.state.TargetSubmissionByBusiness; //TargetBusinessGoLive
-      proposal["TargetBusinessGoLive"] = this.state.TargetBusinessGoLive; //TargetBusinessGoLive
-      proposal["NAPABriefingDate"] = this.state.NAPABriefingDate; //TargetBusinessGoLive
-      // proposal["NAPABriefingComments"] = this.state.NAPABriefingComments;//TargetBusinessGoLive
-      debugger;
-      const numberOfReviewers = this._countReviews(proposal);
-      proposal["InfrastructureCount"] = numberOfReviewers;
-    }
-    else{
-      proposal["ResetPipelineComment"] = this.state.ResetPipelineComment;
-      proposal["Status"] = statusText;
-    }
-
-    if (_isFormValid) this.submitToSP(proposal);
-    else this.setState({ buttonClickedDisabled: false });
-  }
+  }  
   /**
    * Counts the number of reviewers assinged to the current Proposal from Pipeline Review stage.
    * @param proposal Proposal Object in JSON format from SharePoint Napa Proposal list.
@@ -1343,81 +1457,7 @@ export default class InsuranceNapa extends React.Component<
   @autobind
   private ClearErrors():void{
     this.setState({errorMessage:[]});
-  }
-  @autobind
-  private _saveFinalNPSReview(e): void {
-    debugger;
-    this.setState({ buttonClickedDisabled: true });
-    const buttonClicked: string = e.target.innerText;
-    let statusText = "Approval to Trade";
-    if (buttonClicked === "Save") statusText = "Final NPS Review";
-    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
-    const proposal = {};
-    if (statusText === "Approval to Trade")
-      this.setState({ ResetFinalNPSComment: "N/A" });
-    proposal["ActionsRaisedByExco"] = this.state.ActionsRaisedByExco;
-    proposal["BIRORegionalHeadId"] = this.state.BIRORegionalHeadId;
-    proposal["BIRORegionalHeadReviewDate"] =
-      this.state.BIRORegionalHeadReviewDate;
-    proposal["CROComment"] = this.state.CROComment;
-    proposal["FinalRiskClassification"] = this.state.FinalRiskClassification;
-    proposal["CROStatusDate"] = this.state.CROStatusDate;
-    proposal["CROStatus"] = this.state.CROStatus;
-    proposal["IsPostImplementationRequired"] =
-      this.state.IsPostImplementationRequired;
-    proposal["OperationalChecklistRequirement"] =
-      this.state.OperationalChecklistRequirement;
-    proposal["PIRComments"] = this.state.PIRComments;
-    proposal["PIRDateCompleted"] = this.state.PIRDateCompleted;
-    proposal["TargetDueDate"] = this.state.TargetDueDate;
-    proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
-
-    proposal["Status"] = statusText;
-
-    if (_isFormValid) this.submitToSP(proposal);
-    else this.setState({ buttonClickedDisabled: false });
-  }
-  @autobind
-  private _ResetToInfrastructureReview(infraAreas: []) {
-    console.log(infraAreas);
-    const proposal = {};
-    let newCounter = 0;
-    infraAreas.forEach((infraArea) => {
-      const infraObj = Utility.GetInfraObject(infraArea);
-      proposal[infraObj.approvalDate] = null;
-      proposal[infraObj.comment] = this.state.ResetFinalNPSComment;
-      proposal[infraObj.approvedBy] = null;
-      newCounter++;
-    });
-    proposal["Status"] = "Infrastructure Review";
-    proposal["InfrastructureApprovalCount"] =
-      this.state.InfrastructureApprovalCount - newCounter;
-    console.log(proposal);
-    this.submitToSP(proposal);
-  }
-  @autobind
-  private _saveApprovalToTrade(e) {
-    debugger;
-    this.setState({ buttonClickedDisabled: true });
-    const buttonClicked: string = e.target.innerText;
-    let statusText = "Approved to Trade";
-    if (buttonClicked === "Save") statusText = "Approval to Trade";
-    if (buttonClicked === "Reset to Final NPS Review")
-      statusText = "Final NPS Review";
-    const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
-    const proposal = {};
-    if (statusText === "Approved to Trade")
-      this.setState({ ResetFinalNPSComment: "N/A" });
-    proposal["ATTChairId"] = this.state.ATTChairId;
-    proposal["ChairComments"] = this.state.ChairComments;
-    proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
-    proposal["Status"] = statusText;
-    console.log(proposal);
-    if (_isFormValid) this.submitToSP(proposal);
-    else {
-      this.setState({ buttonClickedDisabled: false });
-    }
-  }
+  }  
   public render(): React.ReactElement<IInsuranceNapaProps> {
     return (
       <div className={styles.insuranceNapa}>
@@ -1675,6 +1715,8 @@ export default class InsuranceNapa extends React.Component<
           {this.state.selectedSection === mainStatuses[5] && (
             <FinalNPSReview
               ActionsRaisedByExco={this.state.ActionsRaisedByExco}
+              ApprovedItems={this.state.ApprovedItems}
+              addAttachments={this._addAttachments}
               BusinessExecutiveId={this.state.BIRORegionalHeadId}
               BusinesExecutive={this.state.BIRORegionalHead}
               BusinesExecutiveApprovalDate={

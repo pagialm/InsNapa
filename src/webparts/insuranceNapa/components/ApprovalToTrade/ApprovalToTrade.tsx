@@ -26,7 +26,7 @@ const columnProps: Partial<IStackProps> = {
 const ApprovalToTrade = (props) => {
   console.log(props);
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       <Headers
         proposalId={props.ID}
         selectedSection={props.SelectedSection}

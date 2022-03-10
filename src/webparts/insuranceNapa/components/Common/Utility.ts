@@ -484,6 +484,19 @@ class Utility {
 
     return itemTitle;
   }
+
+  public static GetMenuItemInternalName(title: string): string {
+    let itemInternalName = "";
+    const menuItems = this.GetMenuItems();
+    const filteredMenus = menuItems.filter(
+      (fmi) => fmi.subtile === title
+    );
+    if (filteredMenus.length > 0) {
+      itemInternalName = filteredMenus[0].internalName;
+    }
+
+    return itemInternalName;
+  }
 }
 
 export default Utility;

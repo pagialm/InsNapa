@@ -34,7 +34,7 @@
     "scriptResources": {
       "napa-dashboard-web-part": {
         "type": "path",
-        "path": "napa-dashboard-web-part_6579495955bd17595be5.js"
+        "path": "napa-dashboard-web-part_c5136361a0055385b000.js"
       },
       "@microsoft/sp-property-pane": {
         "type": "component",

@@ -4,6 +4,7 @@ import {
   ISPHttpClientOptions,
 } from "@microsoft/sp-http";
 import {  
+  IStackStyles,
   Stack,  
 } from "office-ui-fabric-react";
 import * as React from "react";
@@ -14,6 +15,8 @@ import ShowConditions from "../Common/Conditions/ShowConditions";
 import Approvals from "./Approvals";
 import { IInfrastructureReviewProps } from "./IInfrastructureReviewProps";
 import ReviewQuestions from "./ReviewQuestions";
+
+const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
 
 const InfrastructureReview = (props: IInfrastructureReviewProps) => {
   const [canEditStage, setCanEditStage] = React.useState(false);
@@ -61,7 +64,7 @@ const InfrastructureReview = (props: IInfrastructureReviewProps) => {
   }
 
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       {props.ID > 0 && (
         <HeadersDecor
           proposalStatus={props.Status}
@@ -136,6 +139,7 @@ const InfrastructureReview = (props: IInfrastructureReviewProps) => {
         SubmitToSP={props.saveOnSharePoint}
         Status={props.Status}
         canApprove={(props.userRole === "Approver" && canEditStage || props.userRole === "Admin") ? true : false}
+        ValidateForm={props.ValidateForm}
       />
     </Stack>
   );

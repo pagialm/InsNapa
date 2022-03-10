@@ -55,7 +55,7 @@ const ErrorExample = (message: string) => (
 );
 const Enquiry = (props: IEnquiryProps) => {
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       {props.ID > 0 && (
         <Headers
           proposalStatus={props.Status}
@@ -487,7 +487,7 @@ const Enquiry = (props: IEnquiryProps) => {
         />
         {(props.EditMode && (props.Status === "Enquiry" || props.Status === "")) && (
           <PrimaryButton
-            text="Submit for Proposal"
+            text="Submit for NPS Determination"
             onClick={props.saveApplicationEnquiry}
             allowDisabledFocus
             disabled={props.buttonClickedDisabled}

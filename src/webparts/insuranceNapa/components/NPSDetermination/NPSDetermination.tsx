@@ -140,7 +140,7 @@ export default class NPSDetermination extends React.Component<INPSDeterminationP
   public render(): React.ReactElement<INPSDeterminationProps> {
     return (
       <div>
-        <Stack>
+        <Stack styles={stackStyles}>
           <Headers
             proposalId={this.props.proposalId}
             selectedSection="Proposal"

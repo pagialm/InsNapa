@@ -29,7 +29,7 @@ const columnProps: Partial<IStackProps> = {
 
 const NPSPipelineReview = (props: INPSPipelineReviewProps) => {
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       <Headers
         proposalId={props.proposalId}
         selectedSection="NPS Pipeline Review"

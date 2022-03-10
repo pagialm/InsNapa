@@ -171,7 +171,7 @@ const ReviewQuestions = (props: IReviewQuestions) => {
   const submitReviewQuestions = (e) => {
     setIsButtonEnabled(!isButtonEnabled);
     debugger;
-    const isValid = props.ValidateForm();
+    const isValid = props.ValidateForm(".nps_reviews");
     if(isValid){
       console.log("Form Valid");
     }
@@ -240,7 +240,7 @@ const ReviewQuestions = (props: IReviewQuestions) => {
   };
 
   return (
-    <Stack>
+    <Stack className="nps_reviews">
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
         <Stack {...columnProps}>
           <Dropdown

@@ -20,6 +20,7 @@ import * as React from "react";
 import AddAttachmentsPanel from "../Common/AddAttachmentsPanel";
 import HeaderInfo from "../Common/HeaderInfo";
 import Headers from "../Common/Headers";
+import Utility from "../Common/Utility";
 
 const stackTokens = { childrenGap: 50 };
 const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
@@ -70,7 +71,7 @@ const FinalNPSReview = (props) => {
   };
   console.log("props...", props);
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       <Headers
         proposalId={props.ID}
         selectedSection={props.SelectedSection}
@@ -231,39 +232,14 @@ const FinalNPSReview = (props) => {
       />
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
         <Stack {...columnProps} tokens={stackTokens2}>
-          <Checkbox label="CRO" onChange={_onChange} />
-          <Checkbox label="Legal Risk" onChange={_onChange} />
-          <Checkbox label="Financial Crime" onChange={_onChange} />
-          <Checkbox label="Data Privacy" onChange={_onChange} />
-          <Checkbox label="Fraud Risk" onChange={_onChange} />
-          <Checkbox label="Tax Risk" onChange={_onChange} />
-          <Checkbox
-            label="Information Security Risk and Cyber Risk"
-            onChange={_onChange}
-          />
-          <Checkbox label="Finance" onChange={_onChange} />
-          <Checkbox
-            label="Head of Actuarial and Statutory Actuary"
-            onChange={_onChange}
-          />
-          <Checkbox label="Marketing and Communications" onChange={_onChange} />
-          <Checkbox label="Financial & Insurance Risk" onChange={_onChange} />
+          {
+            props.ApprovedItems.map(approvedItem => {              
+              return <Checkbox label={Utility.GetMenuItemTitle(approvedItem["NAPA_Infra"])} onChange={_onChange} />
+            })
+          }          
         </Stack>
         <Stack {...columnProps} tokens={stackTokens2}>
-          <Checkbox label="Compliance" onChange={_onChange} />
-          <Checkbox label="Operations" onChange={_onChange} />
-          <Checkbox label="Supplier Risk" onChange={_onChange} />
-          <Checkbox
-            label="Financial Reporting/ Control Risk"
-            onChange={_onChange}
-          />
-          <Checkbox label="Technology Risk" onChange={_onChange} />
-          <Checkbox label="Business Continuity Risk" onChange={_onChange} />
-          <Checkbox label="RBB CVM" onChange={_onChange} />
-          <Checkbox label="Valuations" onChange={_onChange} />
-          <Checkbox label="Reinsurance" onChange={_onChange} />
-          <Checkbox label="Customer Experience" onChange={_onChange} />
-          <Checkbox label="Distribution" onChange={_onChange} />
+          
         </Stack>
       </Stack>
       <Separator />

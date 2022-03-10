@@ -36,6 +36,7 @@ const Proposal = (props: IProposalProps) => {
   let [approvalCapacityOptions, setApprovalCapacityOptions] = React.useState(
     []
   );
+  const _stageName = "NPS Determination";
   const emptyOption: IDropdownOption = { key: "0", text: "" };
   console.log(props.buPrcDate);
   // insBuPruOutcomeOptions: IDropdownOption[] = [];
@@ -72,10 +73,10 @@ const Proposal = (props: IProposalProps) => {
   }, []);
   return (
     <div>
-      <Stack>
+      <Stack styles={stackStyles}>
         <Headers
           proposalId={props.proposalId}
-          selectedSection="Proposal"
+          selectedSection={_stageName}
           title={props.title}
           proposalStatus={props.proposalStatus}
         />
@@ -209,21 +210,21 @@ const Proposal = (props: IProposalProps) => {
         <Separator />
         <Stack horizontal tokens={stackTokens} styles={stackStyles}>
           <DefaultButton onClick={props.cancelProposal} text="Cancel" />
-          {props.EditMode && props.Status === "Proposal" && (
+          {props.EditMode && props.Status === _stageName && (
             <DefaultButton
               onClick={props.saveProposal}
               text="Save"
               disabled={props.buttonDisabled}
             />
           )}
-          {props.EditMode && props.Status === "Proposal" && (
+          {props.EditMode && props.Status === _stageName && (
             <DefaultButton
               onClick={props.saveProposal}
               text="Reset to Enquiry"
               disabled={props.buttonDisabled}
             />
           )}
-          {props.EditMode && props.Status === "Proposal" && (
+          {props.EditMode && props.Status === _stageName && (
             <PrimaryButton
               text="Submit for Pipeline"
               onClick={props.saveProposal}

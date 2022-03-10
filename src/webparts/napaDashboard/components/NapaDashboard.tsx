@@ -22,7 +22,7 @@ const proposalObj = {
 };
 const napaStages = [
   "Enquiry",
-  "Proposal",
+  "NPS Determination",
   "Pipeline",
   "NPS Pipeline Review",
   "Infrastructure Review",

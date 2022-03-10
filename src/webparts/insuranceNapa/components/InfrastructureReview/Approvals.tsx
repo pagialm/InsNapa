@@ -110,6 +110,7 @@ const Approvals = (props) => {
     console.log(e);
     setIsButtonEnabled(!isButtonEnabled);
     debugger;
+    const isValid = props.ValidateForm(".nps_approvals");
     const isNewItem: boolean = currentApprovalItem["ID"] ? false : true;
     const apiReport = (data: SPHttpClientResponse) => {
       console.log(data);
@@ -121,12 +122,15 @@ const Approvals = (props) => {
       //TODO: Check if all approvals completed so that the proposal can be moved to Final NPS Review
       props.CheckApprovals();
     };
-    props.SubmitToSP(
-      "NAPA Infrastructure Approvals",
-      isNewItem,
-      currentApprovalItem,
-      apiReport
-    );
+    if(isValid)
+      props.SubmitToSP(
+        "NAPA Infrastructure Approvals",
+        isNewItem,
+        currentApprovalItem,
+        apiReport
+      );
+    else
+      setIsButtonEnabled(false);
   };
 
   const removeApproval = (e) => {
@@ -188,7 +192,7 @@ const Approvals = (props) => {
   };  
 
   return (
-    <Stack>
+    <Stack className="nps_approvals">
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
         <Stack {...columnProps}>
           <TextField

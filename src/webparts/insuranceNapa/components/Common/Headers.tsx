@@ -1,9 +1,38 @@
-import { IStackStyles, Stack } from "office-ui-fabric-react";
+import { IStackStyles, Stack, mergeStyleSets } from "office-ui-fabric-react";
 import * as React from "react";
 import styles from "../InsuranceNapa.module.scss";
 
 const stackTokens = { childrenGap: 50 };
-const stackStyles: Partial<IStackStyles> = { root: { width: 784 } };
+const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
+const customStyles = mergeStyleSets({
+  headerContainer:{
+    border: "1px solid rgb(175,20,75)",
+    color:"#fff",
+    backgroundColor:"rgb(175,20,75)",
+    padding: "0.2rem",
+  },
+  proposalTitle:{
+    fontSize:"1rem",
+    fontWeight:"bold",
+    padding:"0.2rem",
+    textAlign:"center",
+    textTransform:"uppercase"
+  },
+  statusText:{
+    color:"#fff",
+    fontSize:"1rem",
+  },
+  dividerLine:{
+    width:"50%",
+    textAlign:"center",
+    color:"#fff",
+    borderTop:"1px solid #fff",
+  },
+  headerItems:{
+    justifyContent:"center",
+    alignItems:"center",
+  }
+});
 
 export interface IHeadersState {
   proposalTitle: string;
@@ -24,19 +53,20 @@ class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
   }
   public render(): React.ReactElement<IHeaders> {
     return (
-      <div>
-        <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-          <h4 className={styles["statusText"]}>
+      <div className={customStyles.headerContainer}>
+        <Stack horizontal tokens={stackTokens} styles={stackStyles} className={customStyles.headerItems}>
+          <h4 className={customStyles.statusText}>
             Proposal ID: {this.props.proposalId}
           </h4>
-          <h4 className={styles["statusText"]}>
+          <h4 className={customStyles.statusText}>
             Selected Section: {this.props.selectedSection}
           </h4>
-          <h4 className={styles["statusText"]}>
+          <h4 className={customStyles.statusText}>
             Proposal Status: {this.props.proposalStatus}
           </h4>
         </Stack>
-        <h3 style={{ fontWeight: 700, fontSize: 13.5 }}>{this.props.title}</h3>
+        <hr className={customStyles.dividerLine} />
+        <h3 className={customStyles.proposalTitle}>{this.props.title}</h3>
       </div>
     );
   }
