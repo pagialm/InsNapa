@@ -2,12 +2,30 @@ import {
   DetailsList,
   DetailsListLayoutMode,
   IColumn,
+  mergeStyleSets,
   SelectionMode,
   Stack,
 } from "office-ui-fabric-react";
 import * as React from "react";
 import HeaderInfo from "../Common/HeaderInfo";
 import Utility from "../Common/Utility";
+
+const customStyles = mergeStyleSets({
+  container:{
+    display:"flex",    
+    justifyContent:"space-between",
+    fontSize: "10pt",    
+    marginTop:"1rem",
+    color: "rgb(170, 5, 45)",
+    fontWeight: 700,
+  },
+  title:{    
+    paddingLeft:"0.7rem",
+  },
+  body:{    
+    paddingRight:"16.5rem",
+  }
+});
 
 const ApprovalSummaryList = (props) => {
   const columns: IColumn[] = [
@@ -38,7 +56,7 @@ const ApprovalSummaryList = (props) => {
       minWidth: 100,
       maxWidth: 200,
       onRender: (item) => {
-        return <span>{new Date(item["Created"]).toLocaleDateString()}</span>;
+        return <span>{Utility.FormatDate(new Date(item["Created"]))}</span>;
       },
     },
     {
@@ -68,6 +86,9 @@ const ApprovalSummaryList = (props) => {
         layoutMode={DetailsListLayoutMode.justified}
         isHeaderVisible={true}
       />
+      {(props.ApprovedToTradeDate) && (
+        <p className={customStyles.container}><span className={customStyles.title}>Approved to Trade Date:</span> <span className={customStyles.body}>{Utility.FormatDate(new Date(props.ApprovedToTradeDate))}</span></p>
+      )}
     </Stack>
   );
 };

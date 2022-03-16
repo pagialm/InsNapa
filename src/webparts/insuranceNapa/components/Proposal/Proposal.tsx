@@ -72,9 +72,10 @@ const Proposal = (props: IProposalProps) => {
       });
   }, []);
   return (
-    <div>
+    
       <Stack styles={stackStyles}>
         <Headers
+          ApprovalDueDate={props.ApprovalDueDate}
           proposalId={props.proposalId}
           selectedSection={_stageName}
           title={props.title}
@@ -234,7 +235,7 @@ const Proposal = (props: IProposalProps) => {
           )}
         </Stack>
       </Stack>
-    </div>
+    
   );
 };
 export default Proposal;

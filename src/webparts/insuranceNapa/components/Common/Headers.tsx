@@ -31,6 +31,9 @@ const customStyles = mergeStyleSets({
   headerItems:{
     justifyContent:"center",
     alignItems:"center",
+  },
+  approvalDueDate:{
+    paddingLeft:"2rem"
   }
 });
 
@@ -39,10 +42,12 @@ export interface IHeadersState {
 }
 
 export interface IHeaders {
+  ApprovalDueDate?:string|Date;
   proposalId: number | string | undefined;
   selectedSection: string;
   proposalStatus: string;
   title: string;
+
 }
 class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
   constructor(props: IHeaders, state: IHeadersState) {
@@ -52,6 +57,10 @@ class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
     };
   }
   public render(): React.ReactElement<IHeaders> {
+    const _dueDate:Date = typeof(this.props.ApprovalDueDate) === "string" ? new Date(this.props.ApprovalDueDate) : this.props.ApprovalDueDate;
+    const approvalDueDate = this.props.ApprovalDueDate ? 
+    <span className={customStyles.approvalDueDate}>Approval Due Date: {_dueDate.getDate()}/{_dueDate.getMonth() + 1}/{_dueDate.getFullYear()}</span> : <></>;
+    
     return (
       <div className={customStyles.headerContainer}>
         <Stack horizontal tokens={stackTokens} styles={stackStyles} className={customStyles.headerItems}>
@@ -66,7 +75,7 @@ class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
           </h4>
         </Stack>
         <hr className={customStyles.dividerLine} />
-        <h3 className={customStyles.proposalTitle}>{this.props.title}</h3>
+        <h3 className={customStyles.proposalTitle}>{this.props.title} {approvalDueDate}</h3>
       </div>
     );
   }

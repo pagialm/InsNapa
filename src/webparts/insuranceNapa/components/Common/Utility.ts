@@ -497,6 +497,21 @@ class Utility {
 
     return itemInternalName;
   }
+  private static padTo2Digits(num:number):string {
+    let result = num.toString();
+    if(result.length === 1){
+      result = `0${result}`;
+    }
+    return result;
+  }
+  
+  public static FormatDate(date:Date):string {
+    return [
+      this.padTo2Digits(date.getDate()),
+      this.padTo2Digits(date.getMonth() + 1),
+      date.getFullYear(),
+    ].join('/');
+  }
 }
 
 export default Utility;

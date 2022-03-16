@@ -73,6 +73,7 @@ const FinalNPSReview = (props) => {
   return (
     <Stack styles={stackStyles}>
       <Headers
+        ApprovalDueDate={props.ApprovalDueDate}
         proposalId={props.ID}
         selectedSection={props.SelectedSection}
         title={props.Title}

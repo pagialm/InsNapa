@@ -10,4 +10,5 @@ interface IPipelineProps {
   resetToProposal: string;
   Status: string;
   EditMode?:boolean;
+  ApprovalDueDate?:string|Date;
 }

@@ -52,6 +52,19 @@ class DatesAndUserUtil {
       stateName: "targetDueDate",
       itemName: "TargetDueDate",
     },
+    {
+      stateName: "postApprovalDate",
+      itemName: "PostApprovalDate",
+    },
+    {
+      stateName: "postApprovalFirstTradeDate",
+      itemName: "PostApprovalFirstTradeDate",
+    },
+    {
+      stateName: "postApprovalExtensionDate",
+      itemName: "PostApprovalExtensionDate",
+    },
+
   ];
   public static usersArray: userItemType[] = [
     {

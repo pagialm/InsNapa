@@ -319,6 +319,22 @@ const stages: MenuItem[] = [
     hidden: true,
   },
   {
+    id: 63,
+    title: "Approved and Traded",
+    selected: false,
+    type: "menu",
+    enabled: false,
+    hidden: true,
+  },
+  {
+    id: 64,
+    title: "Approval Expired",
+    selected: false,
+    type: "menu",
+    enabled: false,
+    hidden: true,
+  },
+  {
     id: 7,
     title: "Approval Summary",
     selected: false,

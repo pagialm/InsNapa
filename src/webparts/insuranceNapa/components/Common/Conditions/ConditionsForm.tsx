@@ -128,8 +128,7 @@ const ConditionsForm = (props) => {
       setConditionsItem({...conditionsItem, ...fieldIdentifier});
     // load dropdowns
     dropDownsItems.forEach((dropD) => {
-      getListIems(dropD.listName, "").then((items) => {
-        // setReviewItems(items);
+      getListIems(dropD.listName, "").then((items) => {        
         items.forEach((item) => {
           dropD.varName = [
             ...dropD.varName,
@@ -142,17 +141,14 @@ const ConditionsForm = (props) => {
     getListIems(
       "Infrastructure Conditions",
       "?$filter=NAPA_ID eq '" + props.ID + "'"
-    ).then((items) => {
-      // debugger;
-      // setReviewItems(items);
-      items.forEach((item) => {
-        // console.log("items:", reviewItems);
+    ).then((items) => {      
+        items.forEach((item) => {        
         setConditionsItems([...conditionsItems, item]);
       });
-      // console.log("items:", conditionsItems);      
+         
     });
   }, []);
-  // console.log("itemID...", props.itemID);
+  
   React.useEffect(() => {
     if(props.itemID)
       getListIem("Infrastructure Conditions", props.itemID).then(
@@ -197,8 +193,10 @@ const ConditionsForm = (props) => {
               const _closedBy = users.filter(
                 (user) => user.Id === _item["ClosedById"]
               );
-              if (_closedBy.length > 0)
+              if (_closedBy.length > 0){
                 setClosedBy(_closedBy[0].Title);
+                setConditionsItem({...conditionsItem, ConditionStatus:"Closed"})
+              }
             }
           });
         }
@@ -343,6 +341,13 @@ const ConditionsForm = (props) => {
     setClosedBy("");
     props.closePanel();
   };
+
+  const onFormatDate = (date: Date): string => {
+    const _date: Date = typeof date === "string" ? new Date(date) : date;
+    return (
+      _date.getDate() + "/" + (_date.getMonth() + 1) + "/" + _date.getFullYear()
+    );
+  }
   
   return (
     <Panel
@@ -383,7 +388,7 @@ const ConditionsForm = (props) => {
             setDateConditionedRaised(d);
             setConditionsItem({...conditionsItem, DateConditionedRaised : d});
           }}
-          formatDate={props.onFormatDate}
+          formatDate={onFormatDate}
         />
         <PeoplePicker
           context={props.context}
@@ -408,7 +413,8 @@ const ConditionsForm = (props) => {
             { key: "Open", text: "Open" },
             { key: "Closed", text: "Closed" },
           ]}
-          selectedKey={conditionsItem["ConditionStatus"]}
+          selectedKey={conditionsItem["ConditionStatus"]?conditionsItem["ConditionStatus"]:"Open"}
+          disabled={true}
           onChange={onChange}
           id="ddl_ConditionStatus"
           required
@@ -469,7 +475,7 @@ const ConditionsForm = (props) => {
             setActionDueDate(d);
             setConditionsItem({...conditionsItem, ActionDueDate : d});                 
           }}
-          formatDate={props.onFormatDate}
+          formatDate={onFormatDate}
         />
 
         <Dropdown
@@ -500,7 +506,7 @@ const ConditionsForm = (props) => {
           onChange={(items: any[]) => {
             const _users = getPeoplePickerItems(items);
             if (_users.length > 0)
-              setConditionsItem({...conditionsItem, ClosedById: _users[0]});
+              setConditionsItem({...conditionsItem, ClosedById: _users[0], ConditionStatus: "Closed"});
           }}
           showHiddenInUI={false}
           ensureUser={true}
@@ -515,7 +521,7 @@ const ConditionsForm = (props) => {
             setDateOfClosure(d);
             setConditionsItem({...conditionsItem, DateOfClosure : d}); 
           }}
-          formatDate={props.onFormatDate}
+          formatDate={onFormatDate}
         />        
         {(props.isSubmitVisible || viewSubmit) && (
           <PrimaryButton onClick={submitCondition}>Save Condition</PrimaryButton>

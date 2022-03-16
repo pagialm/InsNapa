@@ -54,5 +54,5 @@ export interface INPSPipelineReviewProps {
   EditMode?:boolean;
   errorMessage?:string[];
   isAttachmentAdded?:boolean;
-  
+  ApprovalDueDate?:string|Date;
 }

@@ -28,6 +28,7 @@ const ApprovalToTrade = (props) => {
   return (
     <Stack styles={stackStyles}>
       <Headers
+        ApprovalDueDate={props.ApprovalDueDate}
         proposalId={props.ID}
         selectedSection={props.SelectedSection}
         title={props.Title}
@@ -41,7 +42,7 @@ const ApprovalToTrade = (props) => {
         <Stack {...columnProps}>
           <PeoplePicker
             context={props.context}
-            titleText="Product Governance custodians:"
+            titleText="NPS Chair Approval:"
             personSelectionLimit={1}
             showtooltip={true}
             disabled={false}

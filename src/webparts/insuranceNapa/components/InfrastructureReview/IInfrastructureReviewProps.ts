@@ -28,4 +28,5 @@ export interface IInfrastructureReviewProps {
   userRole?:string;
   userInfraAreas?:string[];
   checkApprovals?:any;
+  ApprovalDueDate?:string|Date;
 }

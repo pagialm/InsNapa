@@ -37,4 +37,5 @@ export interface IProposalProps {
   Status: string;
   EditMode?:boolean;
   errorMessage?:string[];
+  ApprovalDueDate?:string|Date;
 }

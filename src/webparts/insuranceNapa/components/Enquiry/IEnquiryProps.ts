@@ -82,4 +82,8 @@ export interface IEnquiryProps {
   onChangeToggle: any;
   EditMode?:boolean;
   tansformNullArray?:any;
+  ProposalScopeRestriction?:string;
+  ProposalScopeClarification?:string;
+  saveClarification?:any;
+  ApprovalDueDate?:string|Date;
 }

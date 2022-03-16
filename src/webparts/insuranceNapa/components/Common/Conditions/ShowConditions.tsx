@@ -30,10 +30,10 @@ const ShowConditions = (props) => {
       ? proposalConditions
       : conditionsItems;
     let currStageConditions: any[] = [];
-
-    currStageConditions = allConditions.filter(
-      (condition) => condition.RaisingArea === subMenu["subtile"]
-    );
+    if(subMenu)
+      currStageConditions = allConditions.filter(
+        (condition) => condition.RaisingArea === subMenu["subtile"]
+      );
 
     setStageConditionsItems([...currStageConditions]);
   };

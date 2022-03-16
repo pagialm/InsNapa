@@ -71,9 +71,10 @@ const OtherStatus = (props) => {
     debugger;
   };
   return (
-    <Stack>
+    <Stack styles={stackStyles}>
       {props.ID > 0 && (
         <HeadersDecor
+          ApprovalDueDate={props.ApprovalDueDate}
           proposalStatus={props.Status}
           proposalId={props.ID}
           selectedSection={props.SelectedSection}

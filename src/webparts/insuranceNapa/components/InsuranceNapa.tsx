@@ -22,6 +22,7 @@ import ApprovalSummary from "./ApprovalSummary/ApprovalSummary";
 import OtherStatus from "./OtherStatus/OtherStatus";
 import FinalNPSReview from "./FinalNPSReview/FinalNPSReview";
 import ApprovalToTrade from "./ApprovalToTrade/ApprovalToTrade";
+import ScopeClarification from "./InfrastructureReview/ScopeClarification";
 
 const proposalObj = {
   countriesListname: "Countries",
@@ -49,16 +50,17 @@ const productFamRiskClass: IDropdownOption[] = [
 let menuObj = {};
 
 const mainStatuses = [
-  "Enquiry",
-  "NPS Determination",
-  "Pipeline",
-  "NPS Pipeline Review",
-  "Infrastructure Review",
-  "Final NPS Review",
-  "Chair Approval",
-  "Approval to Trade",
-  "Approved to Trade",
-  "Approval Expired",
+  "Enquiry", //0
+  "NPS Determination", //1
+  "Pipeline", //2
+  "NPS Pipeline Review", //3
+  "Infrastructure Review", //4
+  "Final NPS Review", //5
+  "Chair Approval", //6
+  "Approval to Trade", //7
+  "Approved to Trade", //8
+  "Approval Expired", //9
+  "Approved and Traded", //10
 ];
 
 export default class InsuranceNapa extends React.Component<
@@ -292,7 +294,10 @@ export default class InsuranceNapa extends React.Component<
               if (totalReviewers > 0 && totalApprovals >= totalReviewers)
                 _item["Status"] = "Final NPS Review";
             }
-            if (_item["Status"] === "Infrastructure Review")
+            if (_item["Status"] === mainStatuses[4] ||
+            _item["Status"] === mainStatuses[8] ||
+            _item["Status"] === mainStatuses[9] ||
+            _item["Status"] === mainStatuses[10])
               this.setState({ selectedSection: "Enquiry" });
             else {
               const isInMainItems = mainStatuses.filter(
@@ -825,6 +830,16 @@ export default class InsuranceNapa extends React.Component<
     if (_isFormValid) this.submitToSP(proposal);
     else this.setState({ buttonClickedDisabled: false });
   }
+  @autobind
+  private _saveClarification(e):void{
+    this.setState({ buttonClickedDisabled: true });
+    const proposal = {};
+    proposal["ProposalScopeClarification"] = this.state.ProposalScopeClarification;
+    proposal["ProposalScopeRestriction"] = this.state.ProposalScopeRestriction;
+    proposal["ScopeClarificationMailSent"] = "0";
+
+    this.submitToSP(proposal);
+  }
   /**
    * Save Proposal to NPS Determination
    * @param e Button clicked event.
@@ -1051,6 +1066,21 @@ export default class InsuranceNapa extends React.Component<
       else {
         this.setState({ buttonClickedDisabled: false });
       }
+    }
+    @autobind
+    private _savePostApprovalDetails(e):void {
+      const proposal = {};
+      const _napaStatus = this.state.postApprovalFirstTradeDate ? mainStatuses[10] : mainStatuses[8];
+      proposal["Status"] = _napaStatus;
+      proposal["PostApprovalDate"] = this.state.postApprovalDate;
+      proposal["PostApprovalFirstTradeDate"] = this.state.postApprovalFirstTradeDate;
+      proposal["PostApprovalExtensionDate"] = this.state.postApprovalExtensionDate;
+      proposal["Year1EstimatedGross"] = this.state.Year1EstimatedGross;
+      proposal["Year2EstimatedGross"] = this.state.Year2EstimatedGross;
+      proposal["Year1ActualGross"] = this.state.Year1ActualGross;
+      proposal["Year2ActualGross"] = this.state.Year2ActualGross;
+      proposal["PostApprovalNPSComments"] = this.state.PostApprovalNPSComments;
+      this.submitToSP(proposal);
     }
   /**
    * Submit a Proposal to SharePoint NAPA Proposal list.
@@ -1471,10 +1501,11 @@ export default class InsuranceNapa extends React.Component<
             proposalStatus={this.state.Status}
             ApprovedItems={this.state.ApprovedItems}
             ExcludedMenuItems={this.state.ExcludeMenuItems}
-          />
+          />          
           {(this.state.selectedSection === mainStatuses[0] ||
             this.state.Status === "") && (
             <Enquiry
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               allCountries={this.state.allCountries}
               applicationCompletedBy={this.state.applicationCompletedBy}
               bookingCurrencies={this.state.bookingCurrencies}
@@ -1517,9 +1548,12 @@ export default class InsuranceNapa extends React.Component<
               ProductOfferingCountry={this.state.ProductOfferingCountry}
               ProductFamilyOptions={this.state.ProductFamilyOptions}
               productFamRiskClass={productFamRiskClass}
+              ProposalScopeRestriction={this.state.ProposalScopeRestriction}
+              ProposalScopeClarification={this.state.ProposalScopeClarification}
               Region={this.state.Region}
               SalesTeamLocation={this.state.SalesTeamLocation}
               saveApplicationEnquiry={this._saveApplicationEnquiry}
+              saveClarification={this._saveClarification}
               selectedSection={this.state.selectedSection}
               setParentState={this.updateState}
               shortCountries={this.state.shortCountries}
@@ -1540,6 +1574,7 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === mainStatuses[1] && (
             <Proposal
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               EditMode={this.state.EditMode}
               errorMessage={this.state.errorMessage}
               teamAssessment={this.state.NapaTeamAssessment} // Insurance BU PRC Classification (NAPA Team Assessment)
@@ -1581,6 +1616,7 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === mainStatuses[2] && (
             <Pipeline
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               EditMode={this.state.EditMode}
               title={this.state.Title}
               buttonDisabled={this.state.buttonClickedDisabled}
@@ -1596,6 +1632,7 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === mainStatuses[3] && (
             <NPSPipelineReview
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               EditMode={this.state.EditMode}
               errorMessage={this.state.errorMessage}
               title={this.state.Title}
@@ -1686,6 +1723,7 @@ export default class InsuranceNapa extends React.Component<
             this.state.selectedSection === mainStatuses[4]) && (
             // console.log(this.state.selectedSection) &&
             <InfrastructureReview
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               context={this.props.context}
               checkApprovals={this.CheckApprovals}
               DeleteFromSP={this._DeleteFromSP}
@@ -1714,6 +1752,7 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === mainStatuses[5] && (
             <FinalNPSReview
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               ActionsRaisedByExco={this.state.ActionsRaisedByExco}
               ApprovedItems={this.state.ApprovedItems}
               addAttachments={this._addAttachments}
@@ -1753,9 +1792,10 @@ export default class InsuranceNapa extends React.Component<
               Title={this.state.Title}
             />
           )}
-          {(this.state.selectedSection === "Approval to Trade" ||
-            this.state.selectedSection === "Chair Approval") && (
+          {(this.state.selectedSection === mainStatuses[7] ||
+            this.state.selectedSection === mainStatuses[6]) && (
             <ApprovalToTrade
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               context={this.props.context}
               EditMode={this.state.EditMode}
               errorMessage={this.state.errorMessage}
@@ -1776,15 +1816,33 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === "Approval Summary" && (
             <ApprovalSummary
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
+              ApprovedToTradeDate={this.state.ApprovedToTradeDate}
+              ApprovedItems={this.state.ApprovedItems}
+              buttonClickedDisabled={this.state.buttonClickedDisabled}
+              cancelProposal={this._cancelProposal}
               context={this.props.context}
               ID={this.state.ID}
+              onChangeText={this._onChangeText}
+              onFormatDate={this._onFormatDate}
+              onSelectDate={this._onSelectDate}
+              postApprovalDate={this.state.postApprovalDate}
+              postApprovalExtensionDate={this.state.postApprovalExtensionDate}
+              postApprovalFirstTradeDate={this.state.postApprovalFirstTradeDate}
+              PostApprovalNPSComments={this.state.PostApprovalNPSComments}
+              savePostApprovalDetails={this._savePostApprovalDetails}
+              SubmitToSP={this.submitToOtherSPList}
               Status={this.state.Status}
               Title={this.state.Title}
-              ApprovedItems={this.state.ApprovedItems}
+              Year1ActualGross={this.state.Year1ActualGross}
+              Year1EstimatedGross={this.state.Year1EstimatedGross}
+              Year2ActualGross={this.state.Year2ActualGross}
+              Year2EstimatedGross={this.state.Year2EstimatedGross}
             />
           )}
           {this.state.selectedSection === "Other Status" && (
             <OtherStatus
+              ApprovalDueDate={this.state.targetSubmissionByBusiness}
               Approval_x0020_withdrawn_x0020_d={
                 this.state.Approval_x0020_withdrawn_x0020_d
               }

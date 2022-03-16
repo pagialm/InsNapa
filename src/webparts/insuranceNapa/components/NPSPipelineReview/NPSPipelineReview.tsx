@@ -31,6 +31,7 @@ const NPSPipelineReview = (props: INPSPipelineReviewProps) => {
   return (
     <Stack styles={stackStyles}>
       <Headers
+        ApprovalDueDate={props.ApprovalDueDate}
         proposalId={props.proposalId}
         selectedSection="NPS Pipeline Review"
         title={props.title}

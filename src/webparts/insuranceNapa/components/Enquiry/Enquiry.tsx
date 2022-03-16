@@ -11,6 +11,7 @@ import {
   IStackProps,
   IStackStyles,
   Label,
+  Link,
   MessageBar,
   MessageBarType,
   PrimaryButton,
@@ -24,6 +25,7 @@ import HeaderInfo from "../Common/HeaderInfo";
 import Headers from "../Common/Headers";
 import { IEnquiryProps } from "./IEnquiryProps";
 import styles from "../InsuranceNapa.module.scss";
+import ScopeClarification from "../InfrastructureReview/ScopeClarification";
 
 const stackTokens = { childrenGap: 50 };
 const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
@@ -34,9 +36,7 @@ const columnProps: Partial<IStackProps> = {
 const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { width: 300 } };
 const proposalRegions: IDropdownOption[] = [
   { key: "ARO", text: "ARO" },
-  { key: "SA", text: "SA" },
-  // { key: "UK", text: "UK" },
-  // { key: "USA", text: "USA" },
+  { key: "SA", text: "SA" },  
 ];
 
 const SuccessExample = () => (
@@ -58,13 +58,20 @@ const Enquiry = (props: IEnquiryProps) => {
     <Stack styles={stackStyles}>
       {props.ID > 0 && (
         <Headers
+          ApprovalDueDate={props.ApprovalDueDate}
           proposalStatus={props.Status}
           proposalId={props.ID}
           selectedSection="Enquiry"
           title={props.Title}
         />
       )}
-
+      {(props.Status !== "Enquiry" && props.Status !== "") && (
+        <ScopeClarification            
+          onChangeText={props.onChangeText}
+          ProposalScopeRestriction={props.ProposalScopeRestriction}
+          ProposalScopeClarification={props.ProposalScopeClarification}
+        />
+      )}
       <HeaderInfo
         title="Application Information"
         description="Provide the following administrative information"
@@ -93,8 +100,7 @@ const Enquiry = (props: IEnquiryProps) => {
                 props.setParentState({
                   AppCreatedById: _users[0],
                 });
-            }}
-            // selectedItems={this._getPeoplePickerItems }
+            }}            
             showHiddenInUI={false}
             ensureUser={true}
             principalTypes={[PrincipalType.User]}
@@ -209,41 +215,27 @@ const Enquiry = (props: IEnquiryProps) => {
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
         <Stack {...columnProps}>
           <Dropdown
-            label="Entity:"
-            // onChange={() => {
-            //   this._loadFilteredDropdown(
-            //     "ddlProductArea",
-            //     "Product_x0020_Area"
-            //   );
-            // }}
+            label="Entity:"            
             onChange={props.onFilteredDropdownChange}
             options={props.companies}
             id="ddl_Company"
             selectedKey={props.Company}
-            required
-            // selectedKey={props.proposalObject.Company}
+            required           
           />
           <Dropdown
             label="Product Family:"
-            options={props.businessAreas}
-            // onChange={() => {
-            //   this._loadFilteredDropdown("ddlSubProducts", "Product");
-            // }}
+            options={props.businessAreas}            
             required
             onChange={props.onChange}
             id="ddl_BusinessArea"
-            selectedKey={props.BusinessArea}
-            // selectedKey={props.proposalObject.BusinessArea}
+            selectedKey={props.BusinessArea}            
           />
           {/*  */}
         </Stack>
         <Stack {...columnProps}>
           <Dropdown
             label="Distribution Channel:"
-            options={props.distributionChannels}
-            // onChange={() => {
-            //   this._loadFilteredDropdown("ddlBusinessArea", "Business");
-            // }}
+            options={props.distributionChannels}            
             title="Distribution Channels"
             onChange={(e,o,i)=>{
               props.tansformNullArray("ProductArea0", e, o, i);
@@ -251,18 +243,8 @@ const Enquiry = (props: IEnquiryProps) => {
             id="ddl_ProductArea0"
             selectedKeys={props.ProductArea0}
             multiSelect
-            required
-            // selectedKey={props.proposalObject.ProductArea0}
-          />
-          {/* <FilteredDropdown
-                label="Product Area:"
-                context={this.props.context}
-                listname="Products"
-                field1={{
-                  name: "Title",
-                  value: props.proposalObject.ProductArea0,
-                }}
-              /> */}
+            required            
+          />          
           <Dropdown
             label="Product Family Risk Classification:"
             options={props.productFamRiskClass}
@@ -318,6 +300,13 @@ const Enquiry = (props: IEnquiryProps) => {
             onChange={props.onChangeText}
             id="txt_PrincipalRisks"
           />
+          <Link
+            title="Principle Risks.docx"    
+            target="_blank" 
+            data-interception="off"       
+            href="https://absacorp.sharepoint.com/:w:/s/ts_RBBIPPortal/ERSoRK55CvVBs7LxPgUZ0CsBPsbK5Qd2s8YRyMnTMA6onQ?e=0pvjCR">
+              Principle Risks.docx
+            </Link>
         </Stack>
       </Stack>
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
@@ -348,9 +337,7 @@ const Enquiry = (props: IEnquiryProps) => {
         <Stack {...columnProps}>
           <Dropdown
             placeholder="Select options"
-            label="Infrastructure Support Country:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
+            label="Infrastructure Support Country:"            
             onChange={(e, o, i) => {
               props.setParentState({ IFCountry: [o.text] });
             }}
@@ -362,9 +349,7 @@ const Enquiry = (props: IEnquiryProps) => {
           />
           <Dropdown
             placeholder="Select options"
-            label="Target Client Location:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
+            label="Target Client Location:"            
             onChange={(e, o, i) => {
               props.setParentState({ ClientLocation: [o.text] });
             }}
@@ -376,9 +361,7 @@ const Enquiry = (props: IEnquiryProps) => {
           />
           <Dropdown
             placeholder="Select options"
-            label="Country of Product Offering:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
+            label="Country of Product Offering:"            
             onChange={(e, o, i) => {
               props.setParentState({ ProductOfferingCountry: [o.text] });
             }}
@@ -392,9 +375,7 @@ const Enquiry = (props: IEnquiryProps) => {
         <Stack {...columnProps}>
           <Dropdown
             placeholder="Select options"
-            label="Sales/Coverage Team Location:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
+            label="Sales/Coverage Team Location:"            
             onChange={(e, o, i) => {
               props.setParentState({ SalesTeamLocation: [o.text] });
             }}
@@ -403,20 +384,7 @@ const Enquiry = (props: IEnquiryProps) => {
             styles={dropdownStyles}
             id="ddl_SalesTeamLocation"
             required
-          />
-          {/* <Dropdown
-            placeholder="Select options"
-            label="Target Market:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChange={props.onChange}
-            multiSelect
-            selectedKeys={props.ClientSector}
-            options={props.clientSectors}
-            styles={dropdownStyles}
-            id="ddl_ClientSector"
-            required
-          /> */}
+          />          
           <TextField
             label="Target Market"
             value={props.ClientSector}
@@ -425,9 +393,7 @@ const Enquiry = (props: IEnquiryProps) => {
           />
           <Dropdown
             placeholder="Select options"
-            label="Applicable Currencies:"
-            // selectedKeys={selectedKeys}
-            // eslint-disable-next-line react/jsx-no-bind
+            label="Applicable Currencies:"            
             onChange={(e,o,i)=>{
               props.tansformNullArray("BookingCurrencies", e, o, i);
             }}
@@ -438,20 +404,6 @@ const Enquiry = (props: IEnquiryProps) => {
             styles={dropdownStyles}
             required
           />
-
-          {/* <Dropdown
-            placeholder="Select options"
-            label="Booking Legal Entity:"
-            selectedKey={props.BookingEntity}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChange={(e, o, i) => {
-              props.setParentState({ BookingEntity: [o.text] });
-            }}
-            id="ddl_BookingEntity"
-            options={props.legalEntities}
-            styles={dropdownStyles}
-            required
-          /> */}
         </Stack>
       </Stack>
       <Separator />
@@ -481,17 +433,15 @@ const Enquiry = (props: IEnquiryProps) => {
         <DefaultButton
           text="Cancel"
           onClick={props.cancelProposal}
-          allowDisabledFocus
-          className={styles.buttonsGroupInput}
+          allowDisabledFocus          
           disabled={props.buttonClickedDisabled}
         />
-        {(props.EditMode && (props.Status === "Enquiry" || props.Status === "")) && (
+        {(props.EditMode && (props.Status === "Enquiry")) && (
           <PrimaryButton
             text="Submit for NPS Determination"
             onClick={props.saveApplicationEnquiry}
             allowDisabledFocus
-            disabled={props.buttonClickedDisabled}
-            className={styles.buttonsGroupInput}
+            disabled={props.buttonClickedDisabled}            
           />
         )}
         {(props.EditMode && (props.Status === "Enquiry" || props.Status === "")) && (
@@ -499,9 +449,16 @@ const Enquiry = (props: IEnquiryProps) => {
             text="Save as Draft"
             onClick={props.saveApplicationEnquiry}
             allowDisabledFocus
-            disabled={props.buttonClickedDisabled}
-            className={styles.buttonsGroupInput}
+            disabled={props.buttonClickedDisabled}            
           />
+        )}
+        {(props.Status !== "Enquiry" && props.Status !== "") && (
+          <PrimaryButton
+          text="Save Scope Clarification/Restriction"
+          onClick={props.saveClarification}
+          allowDisabledFocus
+          disabled={props.buttonClickedDisabled}            
+        />
         )}
       </Stack>
     </Stack>

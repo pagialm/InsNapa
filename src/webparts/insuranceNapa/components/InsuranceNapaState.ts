@@ -168,4 +168,16 @@ export interface InsuranceNapaState {
   ExcludeMenuItems?:any[];
   CurrentUserRole?:string;
   CurrentUserInfrastructureAreas?:string[];
+  ProposalScopeRestriction?:string;
+  ProposalScopeClarification?:string;
+  postApprovalDate?:string | Date;
+  postApprovalExtensionDate?:string | Date;
+  postApprovalFirstTradeDate?:string | Date;
+  PostApprovalNPSComments?:string;
+  Year1ActualGross?:string;
+  Year1EstimatedGross?:string;
+  Year2ActualGross?:string;
+  Year2EstimatedGross?:string;
+  // TargetSubmissionByBusiness?:string | Date;
+  ApprovedToTradeDate?:Date;
 }
