@@ -220,6 +220,11 @@ const ShowConditions = (props) => {
     },
   ];
 
+  const refreshConditions = () => {
+    CollectConditions();
+    props.RefreshOpenConditions();
+  }
+
   return (
     <div>
       {props.showAddPanel && (
@@ -230,6 +235,7 @@ const ShowConditions = (props) => {
           siteUrl={props.siteUrl}
           SubmitToSP={props.SubmitToSP}
           onSelectDate={props.onSelectDate}
+          RefreshConditions={refreshConditions}
           itemID={props.id}
           internalMenuId={props.internalMenuId}
           getPeoplePickerItems={props.getPeoplePickerItems}
@@ -254,7 +260,10 @@ const ShowConditions = (props) => {
       <ConditionsForm
         context={props.context}
         siteUrl={props.siteUrl}
-        closePanel={dismissPanel}
+        closePanel={() => {
+          dismissPanel();
+          refreshConditions();
+        }}
         isPanelOpen={isOpen}
         itemID={itemID}
         SubmitToSP={props.SubmitToSP}

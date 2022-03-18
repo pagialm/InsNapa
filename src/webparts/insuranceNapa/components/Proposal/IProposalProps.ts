@@ -38,4 +38,7 @@ export interface IProposalProps {
   EditMode?:boolean;
   errorMessage?:string[];
   ApprovalDueDate?:string|Date;
+  InfrastructureAreasApprovedBPRC?:string[];
+  ActionOwiningAreas?:IDropdownOption[];
+  tansformNullArray?:any;
 }

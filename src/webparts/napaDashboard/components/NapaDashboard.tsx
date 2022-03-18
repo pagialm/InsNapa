@@ -2,17 +2,23 @@ import * as React from "react";
 import styles from "./NapaDashboard.module.scss";
 import { INapaDashboardProps } from "./INapaDashboardProps";
 import { escape } from "@microsoft/sp-lodash-subset";
+import { IDashboardState } from './IDashboardState';
 // import { initializeIcons } from "@fluentui/react/lib/Icons";
 import {
+  autobind,
   CommandButton,
+  ConstrainMode,
   DetailsHeader,
   DetailsList,
+  DetailsListLayoutMode,
   IColumn,
   IContextualMenuProps,
   IDetailsHeaderProps,
   IGroup,
   Link,
   SelectionMode,
+  ShimmeredDetailsList,
+  TextField,
   // initializeIcons,
 } from "office-ui-fabric-react";
 import { SPHttpClient } from "@microsoft/sp-http";
@@ -27,7 +33,7 @@ const napaStages = [
   "NPS Pipeline Review",
   "Infrastructure Review",
   "Final NPS Review",
-  "Approval to Trade",
+  "Chair Approval",
   "Approved to Trade",
   "Approved and Traded",
   "Approved Expired",
@@ -49,14 +55,15 @@ export default class NapaDashboard extends React.Component<
     super(props);
     this.state = {
       items: [],
+      groups:[],
     };
     this._columns = [
       {
         key: "Id",
         name: "ID",
         fieldName: "ID",
-        minWidth: 80,
-        maxWidth: 120,
+        minWidth: 60,
+        maxWidth: 90,
         isResizable: true,
       },
       {
@@ -184,11 +191,12 @@ export default class NapaDashboard extends React.Component<
       })
       .then(() => {
         this._getLitsItems(_NapaItemsUrl).then((items: IListItem[]) => {
-          // console.log(items);
+          console.log(items);
           napaStages.forEach((napaStage, idx: number) => {
             const _stageItems: IListItem[] = items.filter((item) => {
               this.setAccess(item);
-              if (UserHasAccess) return item.Status === napaStage;
+              return item.Status === napaStage;
+              // if (UserHasAccess) return item.Status === napaStage;
             });
             const _startIndex =
               items.indexOf(_stageItems[0]) >= 0
@@ -196,20 +204,23 @@ export default class NapaDashboard extends React.Component<
                 : 0;
             const _count = _stageItems.length;
             const _isCollapsed = idx > 0 ? true : false;
-            this._groups.push({
-              key: napaStage,
-              name: napaStage,
-              startIndex: _startIndex,
-              isCollapsed: _isCollapsed,
-              count: _count,
-              level: 0,
-            });
+            if(_count > 0){
+              this._groups.push({
+                key: napaStage,
+                name: napaStage,
+                startIndex: _startIndex,
+                isCollapsed: _isCollapsed,
+                count: _count,
+                level: 0,
+              });
+            }
           });
-          console.log(this._groups);
-          this.setState({ items: items });
+          
+          this.setState({ items: items, allItems: items, groups: this._groups, allGroups: this._groups });
         });
       });
   }
+  
   private setAccess(item: IListItem): void {
     //First Check If the User is in any of the 5 main groups
     if (
@@ -316,7 +327,7 @@ export default class NapaDashboard extends React.Component<
       //Set item access
       item.canView = UserHasAccess;
       item.canEdit = ShowEditLink;
-      if (item.Status === "Infrastructure Review") console.log(item);
+      // if (item.Status === "Infrastructure Review") console.log(item);
     }
   }
   private _renderItemColumn(item: IListItem, index: number, column: IColumn) {
@@ -352,13 +363,45 @@ export default class NapaDashboard extends React.Component<
         return <span style={{ verticalAlign: "center" }}>{fieldContent}</span>;
     }
   }
+  @autobind
+  private _onChangeText(e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text:string):void{
+    let filteredItems = [];    
+    debugger;
+
+    filteredItems = this.state.allItems.filter(item => {      
+      const itemId = !isNaN(parseInt(text)) ? parseInt(text) : -1;
+      return item.ID.toString().indexOf(itemId.toString()) !== -1 || item.Title.indexOf(text) !== -1;
+    });
+
+    const _tempGroups = [];
+    this._groups.forEach(group => {
+      let _groupCount = 0;      
+      if(text)
+        _groupCount = filteredItems.filter(item => (item.Status === group.name)).length;
+      else
+        _groupCount =this.state.allItems.filter(item => (item.Status === group.name)).length;
+
+      if(_groupCount > 0)
+        _tempGroups.push({...group,count:_groupCount, startIndex: filteredItems.map(fItem => (fItem.Status)).indexOf(group.name)});
+    });
+    
+    this.setState({
+      items: text ? filteredItems : this.state.allItems, groups: text ? _tempGroups : this.state.allGroups
+    })
+  }
   public render(): React.ReactElement<INapaDashboardProps> {
     return (
       <div className={styles.napaDashboard}>
-        <DetailsList
+        <TextField 
+          label="Filter Proposals:" 
+          onChange={this._onChangeText} 
+          placeholder={`Filter by ID or Title e.g. 450 or Latest Product...`} 
+        />
+        <ShimmeredDetailsList
           items={this.state.items}
-          columns={this._columns}
-          groups={this._groups}
+          columns={this._columns}          
+          compact={true}          
+          groups={this.state.groups}
           selectionMode={SelectionMode.none}
           onRenderItemColumn={this._renderItemColumn}
         />

@@ -436,17 +436,17 @@ const Enquiry = (props: IEnquiryProps) => {
           allowDisabledFocus          
           disabled={props.buttonClickedDisabled}
         />
-        {(props.EditMode && (props.Status === "Enquiry")) && (
+        {(props.EditMode && (props.Status === "Enquiry" || props.Status === "")) && (
           <PrimaryButton
-            text="Submit for NPS Determination"
+            text="Save as Draft"
             onClick={props.saveApplicationEnquiry}
             allowDisabledFocus
             disabled={props.buttonClickedDisabled}            
           />
         )}
-        {(props.EditMode && (props.Status === "Enquiry" || props.Status === "")) && (
+        {(props.EditMode && (props.Status === "Enquiry")) && (
           <PrimaryButton
-            text="Save as Draft"
+            text="Submit for NPS Determination"
             onClick={props.saveApplicationEnquiry}
             allowDisabledFocus
             disabled={props.buttonClickedDisabled}            

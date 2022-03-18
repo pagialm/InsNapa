@@ -176,7 +176,17 @@ const Proposal = (props: IProposalProps) => {
               onChange={props.onDdlChange}
               id="ddl_ApprovalCapacity"
             />
-            <PeoplePicker
+            <Dropdown
+              label="Infrastructure areas approved by PRC:"
+              options={props.ActionOwiningAreas}
+              multiSelect
+              selectedKeys={props.InfrastructureAreasApprovedBPRC}
+              onChange={(e,o,i)=>{
+                props.tansformNullArray("InfrastructureAreasApprovedBPRC", e, o, i);
+              }}
+              id="ddl_InfrastructureAreasApprovedBPRC"
+            />
+            {/* <PeoplePicker
               context={props.context}
               titleText="Infrastructure areas approved by PRC"
               personSelectionLimit={10}
@@ -193,7 +203,7 @@ const Proposal = (props: IProposalProps) => {
               ensureUser={true}
               principalTypes={[PrincipalType.User]}
               // resolveDelay={1000}
-            />
+            /> */}
           </Stack>
         </Stack>
         <HeaderInfo
@@ -210,16 +220,20 @@ const Proposal = (props: IProposalProps) => {
         />
         <Separator />
         <Stack horizontal tokens={stackTokens} styles={stackStyles}>
-          <DefaultButton onClick={props.cancelProposal} text="Cancel" />
+          <DefaultButton 
+            onClick={props.cancelProposal} 
+            text="Cancel"
+            disabled={props.buttonDisabled}
+          />
           {props.EditMode && props.Status === _stageName && (
-            <DefaultButton
+            <PrimaryButton
               onClick={props.saveProposal}
               text="Save"
               disabled={props.buttonDisabled}
             />
           )}
           {props.EditMode && props.Status === _stageName && (
-            <DefaultButton
+            <PrimaryButton
               onClick={props.saveProposal}
               text="Reset to Enquiry"
               disabled={props.buttonDisabled}
@@ -230,7 +244,7 @@ const Proposal = (props: IProposalProps) => {
               text="Submit for Pipeline"
               onClick={props.saveProposal}
               allowDisabledFocus
-              // className={styles.buttonsGroupInput}
+              disabled={props.buttonDisabled}
             />
           )}
         </Stack>

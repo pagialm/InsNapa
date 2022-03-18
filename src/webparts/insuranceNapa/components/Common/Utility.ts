@@ -497,7 +497,7 @@ class Utility {
 
     return itemInternalName;
   }
-  private static padTo2Digits(num:number):string {
+  private static padTo2Digits(num:number):string {    
     let result = num.toString();
     if(result.length === 1){
       result = `0${result}`;

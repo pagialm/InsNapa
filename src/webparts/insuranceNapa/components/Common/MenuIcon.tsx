@@ -297,11 +297,11 @@ const stages: MenuItem[] = [
   },
   {
     id: 6,
-    title: "Chair Review",
+    title: "Chair Approval",
     selected: false,
     type: "menu",
     enabled: false,
-    hidden: true,
+    // hidden: true,
   },
   {
     id: 61,
@@ -309,6 +309,7 @@ const stages: MenuItem[] = [
     selected: false,
     type: "menu",
     enabled: false,
+    hidden: true,
   },
   {
     id: 62,

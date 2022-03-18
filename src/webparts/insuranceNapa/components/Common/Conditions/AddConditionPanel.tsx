@@ -5,11 +5,17 @@ import ConditionsForm from "./ConditionsForm";
 
 const AddConditionPanel = (props) => {
   const addIcon: IIconProps = { iconName: "Add" };
-  const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] =
-    useBoolean(false);
+  const [isOpen, setIsOpen] = React.useState(false);
+  // const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] =
+    // useBoolean(false);
+    const dismissPanel = (e) => {
+      debugger;
+      setIsOpen(false);
+      props.RefreshConditions();
+    }
   return (
     <Stack>
-      <ActionButton iconProps={addIcon} allowDisabledFocus onClick={openPanel}>
+      <ActionButton iconProps={addIcon} allowDisabledFocus onClick={() => setIsOpen(true)}>
         {props.attachmentsTitle}
       </ActionButton>
       <ConditionsForm

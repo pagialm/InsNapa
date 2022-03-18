@@ -180,4 +180,8 @@ export interface InsuranceNapaState {
   Year2EstimatedGross?:string;
   // TargetSubmissionByBusiness?:string | Date;
   ApprovedToTradeDate?:Date;
+  PreLaunchOpenConditions?:any[];
+  isChairApprover?:boolean;
+  ActionOwningAreas?:IDropdownOption[];
+  InfrastructureAreasApprovedBPRC?:string[];
 }

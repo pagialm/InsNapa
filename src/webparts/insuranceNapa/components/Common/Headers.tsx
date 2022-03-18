@@ -1,6 +1,7 @@
 import { IStackStyles, Stack, mergeStyleSets } from "office-ui-fabric-react";
 import * as React from "react";
 import styles from "../InsuranceNapa.module.scss";
+import Utility from "./Utility";
 
 const stackTokens = { childrenGap: 50 };
 const stackStyles: Partial<IStackStyles> = { root: { width: "100%" } };
@@ -59,7 +60,7 @@ class HeadersDecor extends React.Component<IHeaders, IHeadersState> {
   public render(): React.ReactElement<IHeaders> {
     const _dueDate:Date = typeof(this.props.ApprovalDueDate) === "string" ? new Date(this.props.ApprovalDueDate) : this.props.ApprovalDueDate;
     const approvalDueDate = this.props.ApprovalDueDate ? 
-    <span className={customStyles.approvalDueDate}>Approval Due Date: {_dueDate.getDate()}/{_dueDate.getMonth() + 1}/{_dueDate.getFullYear()}</span> : <></>;
+    <span className={customStyles.approvalDueDate}>Approval Due Date: {Utility.FormatDate(_dueDate)}</span> : <></>;
     
     return (
       <div className={customStyles.headerContainer}>

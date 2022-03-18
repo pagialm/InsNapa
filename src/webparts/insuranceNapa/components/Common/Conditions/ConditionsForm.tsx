@@ -117,39 +117,7 @@ const ConditionsForm = (props) => {
       }) as Promise<any>;
   };
 
-  React.useEffect(() => {
-    // debugger;
-    //Set default fields --Fields will aways share these values
-    const fieldIdentifier = {
-      NAPA_Link : `${props.itemId}_${props.internalMenuId}`,
-      NAPA_ID : `${props.itemId}`,
-      
-    };
-      setConditionsItem({...conditionsItem, ...fieldIdentifier});
-    // load dropdowns
-    dropDownsItems.forEach((dropD) => {
-      getListIems(dropD.listName, "").then((items) => {        
-        items.forEach((item) => {
-          dropD.varName = [
-            ...dropD.varName,
-            { key: item.Title, text: item.Title },
-          ];
-        });
-        dropD.stateFn([...dropD.varName]);
-      });
-    });
-    getListIems(
-      "Infrastructure Conditions",
-      "?$filter=NAPA_ID eq '" + props.ID + "'"
-    ).then((items) => {      
-        items.forEach((item) => {        
-        setConditionsItems([...conditionsItems, item]);
-      });
-         
-    });
-  }, []);
-  
-  React.useEffect(() => {
+  const fetchCondition = () => {
     if(props.itemID)
       getListIem("Infrastructure Conditions", props.itemID).then(
         (_item: IConditionItem) => {
@@ -195,12 +163,48 @@ const ConditionsForm = (props) => {
               );
               if (_closedBy.length > 0){
                 setClosedBy(_closedBy[0].Title);
-                setConditionsItem({...conditionsItem, ConditionStatus:"Closed"})
+                // setConditionsItem({...conditionsItem, ConditionStatus:"Closed"})
               }
             }
           });
         }
       );
+  }
+
+  React.useEffect(() => {
+    // debugger;
+    //Set default fields --Fields will aways share these values
+    const fieldIdentifier = {
+      NAPA_Link : `${props.itemId}_${props.internalMenuId}`,
+      NAPA_ID : `${props.itemId}`,
+      
+    };
+      setConditionsItem({...conditionsItem, ...fieldIdentifier});
+    // load dropdowns
+    dropDownsItems.forEach((dropD) => {
+      getListIems(dropD.listName, "").then((items) => {        
+        items.forEach((item) => {
+          dropD.varName = [
+            ...dropD.varName,
+            { key: item.Title, text: item.Title },
+          ];
+        });
+        dropD.stateFn([...dropD.varName]);
+      });
+    });
+    getListIems(
+      "Infrastructure Conditions",
+      "?$filter=NAPA_ID eq '" + props.ID + "'"
+    ).then((items) => {      
+        items.forEach((item) => {        
+        setConditionsItems([...conditionsItems, item]);
+      });
+         
+    });
+  }, []);
+  
+  React.useEffect(() => {
+    fetchCondition();
   }, [props.itemID]);
   /**
    * Submit the Condition to SharePoint.
@@ -219,7 +223,7 @@ const ConditionsForm = (props) => {
       ConditionStatus: conditionsItem["ConditionStatus"],      
       ControlInPlace: conditionsItem["ControlInPlace"],      
       DateConditionedRaised: conditionsItem["DateConditionedRaised"],
-      DateOfClosure: conditionsItem["DateOfClosure"],
+      DateOfClosure: dateOfClosure,
       DescriptionOfCOA: conditionsItem["DescriptionOfCOA"],
       DescriptionOfRisk: conditionsItem["DescriptionOfRisk"],
       ItemID: conditionsItem["ItemID"],
@@ -348,12 +352,13 @@ const ConditionsForm = (props) => {
       _date.getDate() + "/" + (_date.getMonth() + 1) + "/" + _date.getFullYear()
     );
   }
-  
-  return (
+  console.log("-----", conditionsItem)
+  return (    
     <Panel
       headerText="Add Condition"
       isOpen={props.isPanelOpen}
       onDismiss={props.closePanel}
+      onOpen={fetchCondition}
       closeButtonAriaLabel="Close"
       type={PanelType.medium}
     >
@@ -505,8 +510,14 @@ const ConditionsForm = (props) => {
           disabled={false}
           onChange={(items: any[]) => {
             const _users = getPeoplePickerItems(items);
-            if (_users.length > 0)
+            if (_users.length > 0){
               setConditionsItem({...conditionsItem, ClosedById: _users[0], ConditionStatus: "Closed"});
+              setDateOfClosure(new Date());
+            }
+            else{
+              setConditionsItem({...conditionsItem, ClosedById: null, ConditionStatus: "Open"});
+              setDateOfClosure(null);
+            }
           }}
           showHiddenInUI={false}
           ensureUser={true}
@@ -517,6 +528,7 @@ const ConditionsForm = (props) => {
           label="Date of Closure:"
           isRequired
           value={dateOfClosure}
+          disabled={true}
           onSelectDate={(d: Date) => {
             setDateOfClosure(d);
             setConditionsItem({...conditionsItem, DateOfClosure : d}); 

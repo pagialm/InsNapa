@@ -24,6 +24,7 @@ const ApprovalSummary = (props) => {
       />
       <ShowConditions
         id={props.ID}
+        RefreshOpenConditions={props.RefreshOpenConditions}
         siteUrl={props.context.pageContext.site.absoluteUrl}
         SubmitToSP={props.SubmitToSP}
         context={props.context}

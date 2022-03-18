@@ -6,6 +6,7 @@ import {
   DefaultButton,
   IStackProps,
   IStackStyles,
+  mergeStyleSets,
   PrimaryButton,
   Separator,
   Stack,
@@ -23,8 +24,19 @@ const columnProps: Partial<IStackProps> = {
   styles: { root: { width: 450 } },
 };
 
+const customStyles = mergeStyleSets({
+  errorColor:{
+    padding:"1rem",
+    border: "1px solid rgb(220,0,50)",
+    backgroundColor:"rgba(220,0,50,0.5)",
+    color:"#000",
+    marginTop:"1rem",
+    marginBottom:"1rem",
+  }
+});
 const ApprovalToTrade = (props) => {
   console.log(props);
+  const strCondition = props.PreLaunchOpenConditions.length > 1 ? "conditions" : "condition";
   return (
     <Stack styles={stackStyles}>
       <Headers
@@ -35,7 +47,7 @@ const ApprovalToTrade = (props) => {
         proposalStatus={props.Status}
       />
       <HeaderInfo
-        title="Approval to Trade"
+        title="Chair Approval"
         description="Provide the following product information"
       />
       <Stack horizontal tokens={stackTokens} styles={stackStyles}>
@@ -87,6 +99,12 @@ const ApprovalToTrade = (props) => {
         onChange={props.onChangeText}
       />
       <Separator />
+      {(props.PreLaunchOpenConditions.length > 0) && (
+        <p className={customStyles.errorColor}>
+          *** Approval to trade button has been removed due to <strong>{props.PreLaunchOpenConditions.length}</strong> open <strong>Pre Trade</strong> {strCondition}. Click on
+          Approval Summary to view and Close the {strCondition} before you can approve to trade.
+        </p>
+      )}
       <Stack horizontal tokens={stackTokens}>
         <DefaultButton
           text="Cancel"
@@ -94,7 +112,7 @@ const ApprovalToTrade = (props) => {
           allowDisabledFocus
           disabled={props.buttonClickedDisabled}
         />
-        {props.EditMode && (props.Status === "Approval to Trade" || props.Status === "") && (
+        {props.EditMode && props.isChairApprover && (props.Status === "Approval to Trade" || props.Status === "Chair Approval") && (
           <PrimaryButton
             text="Save"
             onClick={props.saveApprovalToTrade}
@@ -102,7 +120,7 @@ const ApprovalToTrade = (props) => {
             disabled={props.buttonClickedDisabled}
           />
         )}
-        {props.EditMode && (props.Status === "Approval to Trade" || props.Status === "") && (
+        {props.EditMode && props.isChairApprover && (props.Status === "Approval to Trade" || props.Status === "Chair Approval") && (
           <PrimaryButton
             text="Reset to Final NPS Review"
             onClick={props.saveApprovalToTrade}
@@ -110,9 +128,9 @@ const ApprovalToTrade = (props) => {
             disabled={props.buttonClickedDisabled}
           />
         )}
-        {props.EditMode && (props.Status === "Approval to Trade" || props.Status === "") && (
+        {props.EditMode && props.isChairApprover && ((props.Status === "Approval to Trade" || props.Status === "Chair Approval") && props.PreLaunchOpenConditions.length === 0) && (
           <PrimaryButton
-            text="Approval to Trade"
+            text="Approve to Trade"
             onClick={props.saveApprovalToTrade}
             allowDisabledFocus
             disabled={props.buttonClickedDisabled}
@@ -128,7 +146,7 @@ const ApprovalToTrade = (props) => {
             />
           </Stack>
         )}
-      </Stack>
+      </Stack>      
     </Stack>
   );
 };

@@ -279,7 +279,7 @@ const FinalNPSReview = (props) => {
         )}
         {(props.EditMode && (props.Status === "Final NPS Review" || props.Status === "")) && (
           <PrimaryButton
-            text="Submit for Approval to Trade"
+            text="Submit for Chair Approval"
             onClick={props.saveFinalNPSReview}
             allowDisabledFocus
             disabled={props.buttonClickedDisabled}

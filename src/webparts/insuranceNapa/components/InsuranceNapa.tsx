@@ -25,7 +25,7 @@ import ApprovalToTrade from "./ApprovalToTrade/ApprovalToTrade";
 import ScopeClarification from "./InfrastructureReview/ScopeClarification";
 
 const proposalObj = {
-  countriesListname: "Countries",
+  countriesListname: "Countries",  
   productsListname: "Entities",
   jurisdictionListname: "Jurisdiction",
   targetClientSectorListname: "Target Client Sector",
@@ -34,12 +34,14 @@ const proposalObj = {
   bookingLegalEntitiesListname: "Booking Legal Entities",
   distributionChannelListname: "Distribution Channels",
   napaProposalsListname: "NAPA Proposals",
+  napaConditionsListname:"Infrastructure Conditions",
   productFamilyListname: "Product Family",
   teamAssessmentReasonListname: "NAPA Team Assessment Reason",
   userObjects: [],
   userObjectsCount: 0,
   supportingDocsListname: "NAPA Supporting Documentation",
   napaApprovalsListname: "NAPA Infrastructure Approvals",
+  actionOwningAreasListname: "Action Owning Area",
 };
 const productFamRiskClass: IDropdownOption[] = [
   { key: "High", text: "High" },
@@ -164,6 +166,7 @@ export default class InsuranceNapa extends React.Component<
       ProposalDateWithdrawal: null,
       PIRComments: "",
       ResetFinalNPSComment: "",
+      PreLaunchOpenConditions: [],
     };
   }
   @autobind
@@ -184,6 +187,7 @@ export default class InsuranceNapa extends React.Component<
     const tradeActivityArr: IDropdownOption[] = [];
     const legalEntityArr: IDropdownOption[] = [];
     const distributionChannelsArr: IDropdownOption[] = [];
+    const actionOwningAreasArr: IDropdownOption[] = [];
 
     //load countries
     this._getListitems(proposalObj.countriesListname).then((allCountries) => {
@@ -332,20 +336,28 @@ export default class InsuranceNapa extends React.Component<
               proposalObj: _item,
             });            
             console.log(_item);
-            debugger;
+            this._SearchPreTradeConditions();
             const _stageIndex = mainStatuses.indexOf(_item.Status);
             if(_stageIndex > 3){
               const filteredMenu:any[] = this.GetFilteredMenu(_item);
               this.setState({ExcludeMenuItems: filteredMenu});
             }
+            console.log("state: ",this.state)
           });
         });
     }
+
+    this._getListitemsFilter(proposalObj.actionOwningAreasListname, "ID ne 0&$orderby=Title").then(items => {
+      items.forEach(item => {
+        actionOwningAreasArr.push({key: item.Title, text: item.Title});
+      });
+      this.setState({ActionOwningAreas: actionOwningAreasArr});
+    });
   }
   @autobind
   private CheckApprovals():void{    
     const noOfApprovals = this.state.ApprovedItems.length + 1;
-    const infrastructureCount = this.state.InfrastructureCount;
+    const infrastructureCount = this._countReviews(this.state);    
     if(noOfApprovals === infrastructureCount){
       const proposal = {};
       proposal["Status"] = mainStatuses[5];
@@ -358,6 +370,7 @@ export default class InsuranceNapa extends React.Component<
   @autobind
   private GetCurrentUserGroups(){
     let userRole = "";
+    let _isChair = false;
     let userInfraArea = [];
 
     const apiUri =this.props.context.pageContext.web.absoluteUrl +
@@ -381,10 +394,10 @@ export default class InsuranceNapa extends React.Component<
             (r) => r == "NPS Admins"
           ))
             userRole = "Admin";
-            // if(CurrentUserGroups.some(
-            //   (r) => r == "NPS Chairs"
-            // ))
-            //   userRole = "Chair";
+            if(CurrentUserGroups.some(
+              (r) => r == "NPS Chair"
+            ))
+            _isChair = true;
       
      CurrentUserGroups.forEach((r) => {
         if(r.indexOf("NPS Infrastructure ") !== -1)
@@ -394,7 +407,8 @@ export default class InsuranceNapa extends React.Component<
       //Update state
       this.setState({
         CurrentUserRole:userRole,
-        CurrentUserInfrastructureAreas: userInfraArea
+        CurrentUserInfrastructureAreas: userInfraArea,
+        isChairApprover:_isChair
       });
     });
     
@@ -687,8 +701,8 @@ export default class InsuranceNapa extends React.Component<
    */
   @autobind
   private tansformNullArray(stateName, eventObj, option, index){
-    
-    if(this.state[stateName] === null){
+    debugger;
+    if(!this.state[stateName]){
       const resetState = {};
       resetState[stateName] = [];
       // this.updateState(resetState);
@@ -874,6 +888,8 @@ export default class InsuranceNapa extends React.Component<
         .InfraAreaApprovedByBUPRCId
         ? this.state.InfraAreaApprovedByBUPRCId
         : []; // Infrustructures area approved by BU
+      proposal["InfrastructureAreasApprovedBPRC"] = this.state.InfrastructureAreasApprovedBPRC ?
+      this.state.InfrastructureAreasApprovedBPRC : [];
     }
     if (_isFormValid) this.submitToSP(proposal);
     else this.setState({ buttonClickedDisabled: false });
@@ -983,11 +999,11 @@ export default class InsuranceNapa extends React.Component<
       debugger;
       this.setState({ buttonClickedDisabled: true });
       const buttonClicked: string = e.target.innerText;
-      let statusText = mainStatuses[7];
+      let statusText = mainStatuses[6];
       if (buttonClicked === "Save") statusText = mainStatuses[5];
       const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
       const proposal = {};
-      if (statusText === mainStatuses[7])
+      if (statusText === mainStatuses[6])
         this.setState({ ResetFinalNPSComment: "N/A" });
       proposal["ActionsRaisedByExco"] = this.state.ActionsRaisedByExco;
       proposal["BIRORegionalHeadId"] = this.state.BIRORegionalHeadId;
@@ -1029,7 +1045,7 @@ export default class InsuranceNapa extends React.Component<
           newCounter++;
           console.log(itemToDelete);
         }
-        if((newCounter + 1) === infraAreas.length){
+        if((newCounter) === infraAreas.length){
           proposal["Status"] = mainStatuses[4];
           proposal["InfrastructureApprovalCount"] =
             this.state.InfrastructureApprovalCount - newCounter;
@@ -1041,7 +1057,7 @@ export default class InsuranceNapa extends React.Component<
       
     }
     /**
-     * Save from Approval to trade to Approve to trade
+     * Save from Chair Approval to Approve to trade
      * @param e Button clicked event
      */
     @autobind
@@ -1053,13 +1069,15 @@ export default class InsuranceNapa extends React.Component<
       if (buttonClicked === "Save") statusText = mainStatuses[7];
       if (buttonClicked === "Reset to Final NPS Review")
         statusText = mainStatuses[5];
-      const _isFormValid = buttonClicked === "Save" ? true : this._validateForm();
+      const _isFormValid = buttonClicked === "Save" || buttonClicked === "Reset to Final NPS Review" ? true : this._validateForm();
       const proposal = {};
-      if (statusText === mainStatuses[8])
+      if (statusText === mainStatuses[8]){
         this.setState({ ResetFinalNPSComment: "N/A" });
-      proposal["ATTChairId"] = this.state.ATTChairId;
-      proposal["ChairComments"] = this.state.ChairComments;
-      proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;
+        proposal["ATTChairId"] = this.state.ATTChairId;
+        proposal["ChairComments"] = this.state.ChairComments;
+        proposal["ApprovedToTradeDate"] = new Date();
+      }
+      proposal["ResetFinalNPSComment"] = this.state.ResetFinalNPSComment;      
       proposal["Status"] = statusText;
       console.log(proposal);
       if (_isFormValid) this.submitToSP(proposal);
@@ -1487,7 +1505,15 @@ export default class InsuranceNapa extends React.Component<
   @autobind
   private ClearErrors():void{
     this.setState({errorMessage:[]});
-  }  
+  } 
+  @autobind
+  private _SearchPreTradeConditions():void{
+    this._getListitemsFilter(proposalObj.napaConditionsListname, 
+      `NAPA_ID eq '${this.state.ID}' and ConditionStatus eq 'Open' and Type eq 'PreLaunch'`)
+      .then(items => {
+        this.setState({PreLaunchOpenConditions: items});
+      });
+  } 
   public render(): React.ReactElement<IInsuranceNapaProps> {
     return (
       <div className={styles.insuranceNapa}>
@@ -1574,6 +1600,7 @@ export default class InsuranceNapa extends React.Component<
           )}
           {this.state.selectedSection === mainStatuses[1] && (
             <Proposal
+              ActionOwiningAreas={this.state.ActionOwningAreas}
               ApprovalDueDate={this.state.targetSubmissionByBusiness}
               EditMode={this.state.EditMode}
               errorMessage={this.state.errorMessage}
@@ -1586,6 +1613,7 @@ export default class InsuranceNapa extends React.Component<
               buPrcDate={this.state.bUPRCDate} // BU PRC Date
               approvalCapacity={this.state.ApprovalCapacity} // Approval Capacity
               actionsRaisedByBUPRC={this.state.ActionsRasedByBUPRC} // Actions/ conditions/ commets raised by BU PRC
+              InfrastructureAreasApprovedBPRC={this.state.InfrastructureAreasApprovedBPRC}
               infraApprovedByBuPrc={this.state.InfraAreaApprovedByBUPRCId} // Infrustructures area approved by BU PRC
               infraAreaApprovedByBUPRC={this.state.infraAreaApprovedByBUPRC}
               productFamilyRiskClassification={this.state.SubProduct}
@@ -1612,6 +1640,7 @@ export default class InsuranceNapa extends React.Component<
               setParentState={this.updateState}
               buttonDisabled={this.state.buttonClickedDisabled}
               Status={this.state.Status}
+              tansformNullArray={this.tansformNullArray}
             />
           )}
           {this.state.selectedSection === mainStatuses[2] && (
@@ -1761,6 +1790,8 @@ export default class InsuranceNapa extends React.Component<
               BusinesExecutiveApprovalDate={
                 this.state.bIRORegionalHeadReviewDate
               }
+              buttonClickedDisabled={this.state.buttonClickedDisabled}
+              cancelProposal={this._cancelProposal}
               context={this.props.context}
               EditMode={this.state.EditMode}
               ExcoPrcCommitteeComment={this.state.CROComment}
@@ -1796,13 +1827,17 @@ export default class InsuranceNapa extends React.Component<
             this.state.selectedSection === mainStatuses[6]) && (
             <ApprovalToTrade
               ApprovalDueDate={this.state.targetSubmissionByBusiness}
+              buttonClickedDisabled={this.state.buttonClickedDisabled}
+              cancelProposal={this._cancelProposal}
               context={this.props.context}
               EditMode={this.state.EditMode}
               errorMessage={this.state.errorMessage}
               getPeoplePickerItems={this._getPeoplePickerItems}
               ID={this.state.ID}
+              isChairApprover={this.state.isChairApprover}
               onChange={this._onChange}
               onChangeText={this._onChangeText}
+              PreLaunchOpenConditions={this.state.PreLaunchOpenConditions}
               ProductGovernanceCustodians={
                 this.state.ProductGovernanceCustodians
               }
@@ -1830,6 +1865,7 @@ export default class InsuranceNapa extends React.Component<
               postApprovalExtensionDate={this.state.postApprovalExtensionDate}
               postApprovalFirstTradeDate={this.state.postApprovalFirstTradeDate}
               PostApprovalNPSComments={this.state.PostApprovalNPSComments}
+              RefreshOpenConditions={this._SearchPreTradeConditions}
               savePostApprovalDetails={this._savePostApprovalDetails}
               SubmitToSP={this.submitToOtherSPList}
               Status={this.state.Status}
@@ -1846,6 +1882,7 @@ export default class InsuranceNapa extends React.Component<
               Approval_x0020_withdrawn_x0020_d={
                 this.state.Approval_x0020_withdrawn_x0020_d
               }
+              cancelProposal={this._cancelProposal}
               Status="Other Status"
               ID={this.state.ID}
               Title={this.state.Title}
